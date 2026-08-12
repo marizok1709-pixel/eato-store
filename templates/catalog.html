@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="catalog-section">
+    <div class="container">
+        <h1 class="page-title">Каталог</h1>
+
+      <!-- Corkboard Collections -->
+<div class="corkboard">
+    <div class="corkboard-header">
+        <h2>Коллекции</h2>
+        <div class="pin"></div>
+    </div>
+
+    <div class="collections-board">
+        {% for collection in collections %}
+        <a href="{{ url_for('collection', collection_id=collection.id) }}" class="collection-pin">
+            <div class="pin-head"></div>
+            <div class="string"></div>
+            <div class="photo-card">
+                <div class="photo-placeholder">
+                    {% if collection.image and collection.image != '' %}
+                    <img src="{{ collection.image }}" alt="{{ collection.name }}">
+                    {% else %}
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);"></div>
+                    {% endif %}
+                </div>
+                <div class="photo-info">
+                    <h3>{{ collection.name }}</h3>
+                    <p>{{ collection.description[:60] if collection.description else '' }}...</p>
+                </div>
+            </div>
+            <div class="sticky-note">
+                <p>{{ collection.name }}</p>
+                <small>Нажми чтобы увидеть</small>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+        <!-- Bestsellers in Catalog -->
+        <div class="catalog-bestsellers">
+            <h2>Бестселлеры</h2>
+            <div class="products-grid">
+                {% set bestsellers = products | selectattr('bestseller') | list %}
+                {% if bestsellers %}
+                    {% for product in bestsellers %}
+                    <div class="product-card">
+                        <a href="{{ url_for('product', product_id=product.id) }}" class="product-card-link">
+                            <div class="product-image">
+                                {% if product.image and product.image != '' %}
+                                <img src="{{ product.image }}" alt="{{ product.name }}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'placeholder-image\'></div>'">
+                                {% else %}
+                                <div class="placeholder-image"></div>
+                                {% endif %}
+                                {% if product.sold_out %}
+                                <span class="sold-out-badge">SOLD OUT</span>
+                                {% endif %}
+                            </div>
+                            <div class="product-info">
+                                <h3>{{ product.name }}</h3>
+                                <p class="product-price">{{ product.price }} ₽</p>
+                            </div>
+                        </a>
+                        <div class="product-card-actions">
+                            <a href="{{ url_for('product', product_id=product.id) }}" class="btn btn-primary">Подробнее</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>Бестселлеров пока нет</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- All Products -->
+        <div class="catalog-all-products">
+            <h2>Все товары</h2>
+            <div class="products-grid">
+                {% if products %}
+                    {% for product in products %}
+                    <div class="product-card">
+                        <a href="{{ url_for('product', product_id=product.id) }}" class="product-card-link">
+                            <div class="product-image">
+                                {% if product.image and product.image != '' %}
+                                <img src="{{ product.image }}" alt="{{ product.name }}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'placeholder-image\'></div>'">
+                                {% else %}
+                                <div class="placeholder-image"></div>
+                                {% endif %}
+                                {% if product.sold_out %}
+                                <span class="sold-out-badge">SOLD OUT</span>
+                                {% endif %}
+                            </div>
+                            <div class="product-info">
+                                <h3>{{ product.name }}</h3>
+                                <p class="product-price">{{ product.price }} ₽</p>
+                            </div>
+                        </a>
+                        <div class="product-card-actions">
+                            <a href="{{ url_for('product', product_id=product.id) }}" class="btn btn-primary">Подробнее</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>Товаров пока нет</p>
+                {% endif %}
+            </div>
+        </div>
+</section>
+{% endblock %}

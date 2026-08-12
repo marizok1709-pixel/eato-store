@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-background">
+        <img src="{{ url_for('static', filename='images/tech/bgmain.jpg') }}"
+             alt="E.A.T.O. background"
+             class="hero-bg-image"
+             onerror="this.style.display='none'">
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="hero-content">
+        <h1 class="hero-title animate-fade-up">Е.А.Т.О.</h1>
+        <p class="hero-subtitle animate-fade-up delay-1">Бренд одежды, разработанный граффити командой Е.А.Т.О. crew</p>
+        <p class="hero-description animate-fade-up delay-2">Для продвижения true underground культуры</p>
+        <a href="#about" class="scroll-indicator animate-fade-up delay-3">↓</a>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="about-section animate-on-scroll">
+    <div class="container">
+        <h2 class="section-title animate-on-scroll">О бренде</h2>
+        <div class="about-content animate-on-scroll">
+            <div class="about-text">
+                <p class="about-intro animate-on-scroll delay-1">
+                    «E.A.T.O.» — российский бренд одежды, созданный на основе подлинной уличной культуры Санкт-Петербурга.
+                </p>
+                <p class="animate-on-scroll delay-2">
+                    Главная миссия бренда — дать людям возможность открыто и легально выражать свою принадлежность к уличным субкультурам через одежду. В основе каждой коллекции — живой диалог с представителями этих субкультур. Мы не придумываем за них: мы слушаем, вникаем и создаем вещи, которые по-настоящему отражают их ценности, эстетику и мировоззрение.
+                </p>
+                <p class="animate-on-scroll delay-3">
+                    «E.A.T.O.» выпускает лимитированные коллекции с самобытным дизайном, а также совместные проекты с другими брендами, граффити-командами и медийными личностями.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pre-order System -->
+<section class="preorder-section animate-on-scroll">
+    <div class="container">
+        <h2 class="section-title animate-on-scroll">Как заказать</h2>
+        <div class="preorder-info">
+            <div class="preorder-card animate-zoom-in delay-1">
+                <div class="preorder-icon">1</div>
+                <h3>Предзаказ</h3>
+                <p>В течение двух недель после релиза коллекции на каждую вещь действует предзаказ</p>
+            </div>
+            <div class="preorder-card animate-zoom-in delay-2">
+                <div class="preorder-icon">2</div>
+                <h3>Производство</h3>
+                <p>По окончанию срока предзаказа мы за одну неделю реализуем эту партию</p>
+            </div>
+            <div class="preorder-card animate-zoom-in delay-3">
+                <div class="preorder-icon">3</div>
+                <h3>Доставка</h3>
+                <p>По готовности рассылаем заказы покупателям</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Bestsellers -->
+<section class="bestsellers-section animate-on-scroll">
+    <div class="container">
+        <h2 class="section-title animate-on-scroll">Бестселлеры</h2>
+        <div class="products-grid">
+            {% for product in bestsellers %}
+            <div class="product-card animate-on-scroll delay-{{ loop.index % 5 + 1 }}">
+                <a href="{{ url_for('product', product_id=product.id) }}" class="product-card-link">
+                    <div class="product-image">
+                        {% if product.image and product.image != '' %}
+                        <img src="{{ product.image }}" alt="{{ product.name }}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'placeholder-image\'></div>'">
+                        {% else %}
+                        <div class="placeholder-image"></div>
+                        {% endif %}
+                        {% if product.sold_out %}
+                        <span class="sold-out-badge">SOLD OUT</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
+                        <h3>{{ product.name }}</h3>
+                        <p class="product-price">{{ product.price }} ₽</p>
+                    </div>
+                </a>
+                <div class="product-card-actions">
+                    <a href="{{ url_for('product', product_id=product.id) }}" class="btn btn-primary">Подробнее</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Photo Album -->
+<section class="gallery-section animate-on-scroll" id="gallery">
+    <div class="container">
+        <h2 class="section-title animate-on-scroll">Фотоальбом</h2>
+
+        {% set photos_per_page = 9 %}
+        {% set total_pages = (gallery_images|length / photos_per_page)|round(0, 'ceil')|int %}
+        {% set page = request.args.get('page', 1)|int %}
+        {% set start = (page - 1) * photos_per_page %}
+        {% set end = start + photos_per_page %}
+
+        <div class="gallery-grid gallery-grid-uniform">
+            {% for image in gallery_images[start:end] %}
+            <div class="gallery-item gallery-item-uniform animate-on-scroll delay-{{ loop.index % 5 + 1 }}">
+                <img src="{{ url_for('static', filename='images/albom/' + image) }}"
+                     alt="Photo {{ loop.index + start }}"
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'placeholder-image\'></div>'">
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Пагинация -->
+        {% if total_pages > 1 %}
+        <div class="pagination animate-on-scroll">
+            {% if page > 1 %}
+            <a href="?page={{ page - 1 }}#gallery" class="btn btn-primary">← Назад</a>
+            {% endif %}
+
+            <span class="page-info">Страница {{ page }} из {{ total_pages }}</span>
+
+            {% if page < total_pages %}
+            <a href="?page={{ page + 1 }}#gallery" class="btn btn-primary">Вперед →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Collections -->
+<section class="collections-section animate-on-scroll">
+    <div class="container">
+        <h2 class="section-title animate-on-scroll">Коллекции</h2>
+        <div class="collections-grid">
+            {% for collection in collections %}
+            <a href="{{ url_for('collection', collection_id=collection.id) }}" class="collection-card animate-on-scroll delay-{{ loop.index % 5 + 1 }}">
+                <div class="collection-image">
+                    {% if collection.image and collection.image != '' %}
+                    <img src="{{ collection.image }}" alt="{{ collection.name }}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'placeholder-image\'></div>'">
+                    {% else %}
+                    <div class="placeholder-image"></div>
+                    {% endif %}
+                </div>
+                <div class="collection-overlay">
+                    <h3>{{ collection.name }}</h3>
+                    <p>{{ collection.description[:100] if collection.description else '' }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Social Links -->
+<section class="social-section animate-on-scroll">
+    <div class="container">
+        <h2 class="section-title animate-on-scroll">Мы в соцсетях</h2>
+        <div class="social-grid">
+            <a href="https://t.me/eato_store" target="_blank" class="social-card animate-on-scroll delay-1">
+                <div class="social-icon">TG</div>
+                <span>Telegram</span>
+            </a>
+            <a href="https://www.tiktok.com/@eato_crew" target="_blank" class="social-card animate-on-scroll delay-2">
+                <div class="social-icon">TT</div>
+                <span>TikTok</span>
+            </a>
+            <a href="https://youtube.com/@eato_crew" target="_blank" class="social-card animate-on-scroll delay-3">
+                <div class="social-icon">YT</div>
+                <span>YouTube</span>
+            </a>
+            <a href="https://www.instagram.com/e.a.t.o.crew" target="_blank" class="social-card animate-on-scroll delay-4">
+                <div class="social-icon">IG</div>
+                <span>Instagram</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash === '#gallery') {
+        setTimeout(function() {
+            const gallery = document.getElementById('gallery');
+            if (gallery) {
+                const headerOffset = 100;
+                const elementPosition = gallery.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100);
+    }
+
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    const animatedElements = document.querySelectorAll(
+        '.animate-on-scroll, .animate-fade-up, .animate-zoom-in'
+    );
+
+    animatedElements.forEach(el => {
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %}

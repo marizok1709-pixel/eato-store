@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="cart-section">
+    <div class="container">
+        <h1 class="page-title">Корзина</h1>
+
+        <!-- Заказы пользователя -->
+        {% if user_orders %}
+        <div class="user-orders-section">
+            <h2 class="orders-title">Мои заказы</h2>
+
+            {% for order in user_orders %}
+            <div class="order-card">
+                <div class="order-header">
+                    <h3>Заказ #{{ order.order_id }}</h3>
+                    <span class="order-date">{{ order.created_at }}</span>
+                </div>
+
+                <div class="order-content">
+                    <!-- Полоска прогресса -->
+                    <div class="order-progress">
+                        <div class="progress-step {% if order.processing == 1 %}active{% endif %}">
+                            <div class="step-marker">1</div>
+                            <div class="step-label">Принято в обработку</div>
+                        </div>
+                        <div class="progress-line {% if order.production == 1 or order.shipping == 1 %}completed{% endif %}"></div>
+
+                        <div class="progress-step {% if order.production == 1 %}active{% endif %}">
+                            <div class="step-marker">2</div>
+                            <div class="step-label">На производстве</div>
+                        </div>
+                        <div class="progress-line {% if order.shipping == 1 %}completed{% endif %}"></div>
+
+                        <div class="progress-step {% if order.shipping == 1 %}active{% endif %}">
+                            <div class="step-marker">3</div>
+                            <div class="step-label">Едет к вам</div>
+                        </div>
+                    </div>
+
+                    <!-- Информация о заказе -->
+                    <div class="order-info">
+                        <div class="order-items">
+                            <h4>Товары:</h4>
+                            <p>{{ order.get('items', '') }}</p>
+                        </div>
+                        <div class="order-total">
+                            <h4>Сумма:</h4>
+                            <p class="total-price">{{ order.total }} ₽</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Текущая корзина -->
+        {% if cart_items %}
+        <div class="cart-content">
+            <div class="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item" data-cart-item-id="{{ loop.index }}">
+                    <div class="cart-item-image">
+                        {% if item.image and item.image != '' %}
+                        <img src="{{ item.image }}" alt="{{ item.name }}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                        {% else %}
+                        <div class="placeholder-image small"></div>
+                        {% endif %}
+                    </div>
+                    <div class="cart-item-info">
+                        <a href="{{ url_for('product', product_id=item.id) }}" class="cart-item-link">
+                            <h3>{{ item.name }}</h3>
+                        </a>
+                        <p>Размер: {{ item.size }}</p>
+                        <p class="price">{{ item.price }} ₽</p>
+                    </div>
+                    <div class="cart-item-quantity">
+                        <button class="qty-btn decrease" data-cart-item-id="{{ loop.index }}">-</button>
+                        <input type="number" value="{{ item.quantity }}" min="1" class="qty-input" data-cart-item-id="{{ loop.index }}">
+                        <button class="qty-btn increase" data-cart-item-id="{{ loop.index }}">+</button>
+                    </div>
+                    <div class="cart-item-total">
+                        {{ item.price * item.quantity }} ₽
+                    </div>
+                    <button class="remove-item" data-cart-item-id="{{ loop.index }}" data-product-id="{{ item.id }}" data-size="{{ item.size }}" title="Удалить">×</button>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="cart-summary">
+                <h3>Итого: {{ total }} ₽</h3>
+                <button class="btn btn-primary btn-large" id="checkoutBtn">
+                    Оформить заказ
+                </button>
+            </div>
+        </div>
+
+        <!-- Checkout Modal -->
+        <div id="checkoutModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Оформление заказа</h2>
+                <form id="checkoutForm">
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Способ оплаты</label>
+                        <select name="payment">
+                            <option value="card">Банковская карта</option>
+                            <option value="sbp">СБП</option>
+                            <option value="cash">При получении</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">
+                        Оплатить {{ total }} ₽
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        {% if not user_orders %}
+        <div class="empty-cart">
+            <p>Корзина пуста</p>
+            <a href="{{ url_for('catalog') }}" class="btn btn-primary">Перейти в каталог</a>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Функция пересчёта общей суммы
+    function recalculateTotal() {
+        let total = 0;
+        const cartItems = document.querySelectorAll('.cart-item');
+
+        cartItems.forEach(item => {
+            const totalElement = item.querySelector('.cart-item-total');
+            if (totalElement) {
+                const totalText = totalElement.textContent.trim();
+                const itemTotal = parseInt(totalText.replace(/\D/g, ''));
+                if (!isNaN(itemTotal)) {
+                    total += itemTotal;
+                }
+            }
+        });
+
+        const totalElement = document.querySelector('.cart-summary h3');
+        if (totalElement) {
+            totalElement.textContent = 'Итого: ' + total + ' ₽';
+        }
+
+        const cartCount = document.getElementById('cartCount');
+        if (cartCount) {
+            const count = cartItems.length;
+            cartCount.textContent = count;
+            if (count > 0) {
+                cartCount.style.display = 'flex';
+            } else {
+                cartCount.style.display = 'none';
+            }
+        }
+    }
+
+    // Remove from cart
+    const removeButtons = document.querySelectorAll('.remove-item');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const size = this.dataset.size;
+            const cartItem = this.closest('.cart-item');
+
+            fetch('/api/cart/remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: parseInt(productId),
+                    size: size
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    cartItem.style.opacity = '0';
+                    cartItem.style.transform = 'translateX(-100%)';
+                    cartItem.style.transition = 'all 0.3s ease';
+
+                    setTimeout(() => {
+                        cartItem.remove();
+                        recalculateTotal();
+                        const remainingItems = document.querySelectorAll('.cart-item');
+                        if (remainingItems.length === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при удалении товара');
+            });
+        });
+    });
+
+    // Quantity update
+    const qtyInputs = document.querySelectorAll('.qty-input');
+    qtyInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const cartItemId = this.dataset.cartItemId;
+            const quantity = parseInt(this.value);
+            const cartItem = document.querySelector(`.cart-item[data-cart-item-id="${cartItemId}"]`);
+            const productId = cartItem.querySelector('.remove-item').dataset.productId;
+            const size = cartItem.querySelector('.remove-item').dataset.size;
+
+            fetch('/api/cart/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: parseInt(productId),
+                    size: size,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const priceElement = cartItem.querySelector('.price');
+                    if (priceElement) {
+                        const price = parseInt(priceElement.textContent.replace(/\D/g, ''));
+                        const total = price * quantity;
+                        const totalElement = cartItem.querySelector('.cart-item-total');
+                        if (totalElement) {
+                            totalElement.textContent = total + ' ₽';
+                        }
+                    }
+                    recalculateTotal();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+
+    // Quantity buttons
+    document.querySelectorAll('.qty-btn.decrease').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = document.querySelector(`.qty-input[data-cart-item-id="${this.dataset.cartItemId}"]`);
+            if (input && parseInt(input.value) > 1) {
+                input.value = parseInt(input.value) - 1;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    document.querySelectorAll('.qty-btn.increase').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = document.querySelector(`.qty-input[data-cart-item-id="${this.dataset.cartItemId}"]`);
+            if (input) {
+                input.value = parseInt(input.value) + 1;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    // Checkout modal
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const checkoutModal = document.getElementById('checkoutModal');
+    const closeModal = document.querySelector('.close-modal');
+
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function() {
+            if (checkoutModal) {
+                checkoutModal.classList.add('active');
+            }
+        });
+    }
+
+    if (closeModal) {
+        closeModal.addEventListener('click', function() {
+            if (checkoutModal) checkoutModal.classList.remove('active');
+            if (successModal) successModal.classList.remove('active');
+        });
+    }
+
+    // ===== ГЛАВНЫЙ ОБРАБОТЧИК ОФОРМЛЕНИЯ ЗАКАЗА =====
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log('📤 Отправка заказа...');
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            data.total = parseInt(document.querySelector('.cart-summary h3').textContent.replace(/\D/g, ''));
+
+            fetch('/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('✅ Ответ:', result);
+                if (result.success) {
+                    // Закрываем все модалки
+                    if (checkoutModal) checkoutModal.classList.remove('active');
+
+                    // Сразу перезагружаем страницу
+                    window.location.href = '/cart';
+                } else {
+                    alert('Ошибка при оформлении заказа');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Ошибка:', error);
+                alert('Произошла ошибка. Попробуйте снова.');
+            });
+        });
+    }
+
+    // Close modals on outside click
+    window.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            e.target.classList.remove('active');
+        }
+    });
+});
+</script>
+{% endblock %}

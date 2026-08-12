@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="lookbook-section">
+    <div class="container">
+        <h1 class="page-title">Лукбук</h1>
+
+        {% if images %}
+        <div class="lookbook-grid">
+            {% for image in images %}
+            <div class="lookbook-item {% if loop.index % 3 == 1 %}full{% endif %}">
+                <img src="{{ url_for('static', filename='images/lookbook/' + image) }}"
+                     alt="Lookbook {{ loop.index }}"
+                     loading="lazy"
+                     onerror="this.parentElement.style.display='none'">
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-lookbook">
+            <p>Фотографии лукбука пока не добавлены</p>
+            <p class="hint">Добавьте изображения в папку <code>static/images/lookbook/</code></p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.lookbook-section {
+    padding-top: 150px;
+    padding-bottom: 100px;
+    min-height: 100vh;
+}
+
+.lookbook-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 300px;
+    gap: 20px;
+}
+
+.lookbook-item {
+    overflow: hidden;
+    position: relative;
+}
+
+.lookbook-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease, filter 0.3s ease;
+}
+
+.lookbook-item:hover img {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+.lookbook-item.full {
+    grid-column: span 2;
+    grid-row: span 2;
+}
+
+.empty-lookbook {
+    text-align: center;
+    padding: 100px;
+    color: var(--light-gray);
+}
+
+.empty-lookbook .hint {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.empty-lookbook code {
+    background: var(--medium-gray);
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+}
+
+/* Адаптивность */
+@media (max-width: 968px) {
+    .lookbook-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 250px;
+    }
+
+    .lookbook-item.full {
+        grid-column: span 2;
+        grid-row: span 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .lookbook-grid {
+        grid-template-columns: 1fr;
+        grid-auto-rows: 400px;
+    }
+
+    .lookbook-item.full {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+}
+</style>
+{% endblock %}

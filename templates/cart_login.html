@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="cart-login-section">
+    <div class="container">
+        <h1 class="page-title">Корзина</h1>
+        
+        <div class="cart-login-content">
+            <div class="cart-login-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            
+            <h2>Войдите в аккаунт</h2>
+            <p>Чтобы просматривать корзину и оформлять заказы, необходимо авторизоваться</p>
+
+            <div class="cart-login-buttons">
+                <a href="{{ url_for('auth') }}" class="btn btn-primary btn-large">Войти / Регистрация</a>
+                <a href="{{ url_for('catalog') }}" class="btn btn-secondary btn-large">Перейти в каталог</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.cart-login-section {
+    padding-top: 150px;
+    padding-bottom: 100px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.cart-login-content {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 60px;
+    background: var(--dark-gray);
+    border: 1px solid var(--medium-gray);
+}
+
+.cart-login-icon {
+    margin-bottom: 30px;
+    color: var(--white);
+}
+
+.cart-login-content h2 {
+    font-size: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+}
+
+.cart-login-content > p {
+    font-size: 1.2rem;
+    color: var(--light-gray);
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.cart-login-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.cart-login-buttons .btn {
+    min-width: 200px;
+    padding: 15px 30px;
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid var(--white);
+    color: var(--white);
+}
+
+.btn-secondary:hover {
+    background: var(--white);
+    color: var(--black);
+}
+
+@media (max-width: 768px) {
+    .cart-login-content {
+        padding: 40px 20px;
+    }
+    
+    .cart-login-content h2 {
+        font-size: 1.8rem;
+    }
+    
+    .cart-login-buttons {
+        flex-direction: column;
+    }
+    
+    .cart-login-buttons .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

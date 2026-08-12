@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="collection-detail">
+    <div class="collection-header">
+        <div class="placeholder-image collection-hero"></div>
+        <div class="collection-info-overlay">
+            <h1>{{ collection.name }}</h1>
+            <p>{{ collection.description }}</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="collection-items">
+            <h2>Состав коллекции</h2>
+            <div class="products-grid">
+                {% for item in collection.items %}
+                <div class="product-card">
+                    <a href="{{ url_for('catalog') }}" class="product-card-link">
+                        <div class="product-image">
+                            <div class="placeholder-image"></div>
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ item.name }}</h3>
+                            <p class="product-price">{{ item.price }} ₽</p>
+                            <p class="sizes">Размеры: S M L XL</p>
+                        </div>
+                    </a>
+                    <div class="product-card-actions">
+                        <button class="btn btn-primary add-to-cart"
+                                data-name="{{ item.name }}"
+                                data-price="{{ item.price }}">
+                            В корзину
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

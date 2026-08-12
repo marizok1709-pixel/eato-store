@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="order-status-section">
+    <div class="container">
+        <h1 class="page-title">Статус заказа</h1>
+
+        {% if order %}
+        <div class="order-info">
+            <p>Номер заказа: <strong>{{ order.id }}</strong></p>
+            <p>Дата создания: {{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+        </div>
+
+        <div class="tracker">
+            <div class="tracker-step {% if current_step >= 1 %}completed{% endif %}">
+                <div class="step-marker">1</div>
+                <div class="step-label">Заказ оформлен</div>
+                <div class="step-date">{{ order.created_at.strftime('%d.%m') }}</div>
+            </div>
+
+            <div class="tracker-line {% if current_step >= 2 %}completed{% endif %}"></div>
+
+            <div class="tracker-step {% if current_step >= 2 %}completed{% endif %}">
+                <div class="step-marker">2</div>
+                <div class="step-label">Сбор предзаказа</div>
+                <div class="step-date">{{ order.preorder_end.strftime('%d.%m') }}</div>
+                {% if current_step < 2 %}
+                <div class="step-status">В процессе</div>
+                {% else %}
+                <div class="step-status">Завершен</div>
+                {% endif %}
+            </div>
+
+            <div class="tracker-line {% if current_step >= 3 %}completed{% endif %}"></div>
+
+            <div class="tracker-step {% if current_step >= 3 %}completed{% endif %}">
+                <div class="step-marker">3</div>
+                <div class="step-label">Производство</div>
+                <div class="step-date">{{ order.production_start.strftime('%d.%m') }}</div>
+            </div>
+
+            <div class="tracker-line {% if current_step >= 4 %}completed{% endif %}"></div>
+
+            <div class="tracker-step {% if current_step >= 4 %}completed{% endif %}">
+                <div class="step-marker">4</div>
+                <div class="step-label">Доставка</div>
+                <div class="step-date">{{ order.shipping.strftime('%d.%m') }}</div>
+            </div>
+
+            <div class="tracker-line"></div>
+
+            <div class="tracker-step">
+                <div class="step-marker">5</div>
+                <div class="step-label">Заказ получен</div>
+            </div>
+        </div>
+
+        <div class="order-items">
+            <h3>Товары в заказе:</h3>
+            {% for item in order.items %}
+            <div class="order-item">
+                <span>{{ item.name }}</span>
+                <span>× {{ item.quantity }}</span>
+                <span>{{ item.price * item.quantity }} ₽</span>
+            </div>
+            {% endfor %}
+            <div class="order-total">
+                <strong>Итого: {{ order.total }} ₽</strong>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="order-not-found">
+            <h2>Заказ не найден</h2>
+            <p>Заказ с номером {{ order_id }} не существует</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">На главную</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

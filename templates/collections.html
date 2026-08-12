@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="collections-list-section">
+    <div class="container">
+        <h1 class="page-title">Коллекции</h1>
+        <div class="collections-grid">
+            {% for collection in collections %}
+            <a href="{{ url_for('collection', collection_id=collection.id) }}" class="collection-card">
+                <div class="collection-image">
+                    {% if collection.image and collection.image != '' %}
+                    <img src="{{ collection.image }}" alt="{{ collection.name }}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'placeholder-image\'></div>'">
+                    {% else %}
+                    <div class="placeholder-image"></div>
+                    {% endif %}
+                    <div class="collection-overlay">
+                        <h3>{{ collection.name }}</h3>
+                        <p>{{ collection.description[:100] }}...</p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<style>
+.collections-list-section {
+    padding-top: 150px;
+    padding-bottom: 100px;
+    min-height: 100vh;
+}
+
+.collections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 40px;
+    margin-top: 60px;
+}
+
+.collection-card {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4/5;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.collection-image {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    background: var(--medium-gray);
+}
+
+.collection-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.collection-card:hover .collection-image img {
+    transform: scale(1.05);
+}
+
+.collection-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    padding: 40px;
+    transform: translateY(20%);
+    transition: transform 0.3s ease;
+}
+
+.collection-card:hover .collection-overlay {
+    transform: translateY(0);
+}
+
+.collection-overlay h3 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.collection-overlay p {
+    color: var(--light-gray);
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .collections-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

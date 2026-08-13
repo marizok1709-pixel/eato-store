@@ -8,7 +8,7 @@
         {% if images %}
         <div class="lookbook-grid">
             {% for image in images %}
-            <div class="lookbook-item {% if loop.index % 3 == 1 %}full{% endif %}">
+            <div class="lookbook-item">
                 <img src="{{ url_for('static', filename='images/lookbook/' + image) }}"
                      alt="Lookbook {{ loop.index }}"
                      loading="lazy"
@@ -33,21 +33,20 @@
 }
 
 .lookbook-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: 300px;
-    gap: 20px;
+    columns: 3 300px;
+    column-gap: 20px;
 }
 
 .lookbook-item {
     overflow: hidden;
     position: relative;
+    break-inside: avoid;
+    margin-bottom: 20px;
 }
 
 .lookbook-item img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
     display: block;
     transition: transform 0.5s ease, filter 0.3s ease;
 }
@@ -55,11 +54,6 @@
 .lookbook-item:hover img {
     transform: scale(1.05);
     filter: brightness(1.1);
-}
-
-.lookbook-item.full {
-    grid-column: span 2;
-    grid-row: span 2;
 }
 
 .empty-lookbook {
@@ -84,25 +78,13 @@
 /* Адаптивность */
 @media (max-width: 968px) {
     .lookbook-grid {
-        grid-template-columns: repeat(2, 1fr);
-        grid-auto-rows: 250px;
-    }
-
-    .lookbook-item.full {
-        grid-column: span 2;
-        grid-row: span 2;
+        columns: 2 250px;
     }
 }
 
 @media (max-width: 768px) {
     .lookbook-grid {
-        grid-template-columns: 1fr;
-        grid-auto-rows: 400px;
-    }
-
-    .lookbook-item.full {
-        grid-column: span 1;
-        grid-row: span 1;
+        columns: 1;
     }
 }
 </style>

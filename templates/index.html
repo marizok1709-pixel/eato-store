@@ -4,10 +4,11 @@
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="hero-background">
-        <img src="{{ url_for('static', filename='images/tech/bgmain.jpg') }}"
-             alt="E.A.T.O. background"
-             class="hero-bg-image"
-             onerror="this.style.display='none'">
+        <video class="hero-bg-image"
+               poster="{{ url_for('static', filename='images/tech/bgmain.jpg') }}"
+               autoplay muted loop playsinline>
+            <source src="{{ url_for('static', filename='videos/hero.mp4') }}" type="video/mp4">
+        </video>
         <div class="hero-overlay"></div>
     </div>
     <div class="hero-content">

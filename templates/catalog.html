@@ -3,12 +3,12 @@
 {% block content %}
 <section class="catalog-section">
     <div class="container">
-        <h1 class="page-title">Каталог</h1>
+        <h1 class="page-title"><em>Каталог</em></h1>
 
       <!-- Corkboard Collections -->
 <div class="corkboard">
     <div class="corkboard-header">
-        <h2>Коллекции</h2>
+        <h2><em>Коллекции</em></h2>
         <div class="pin"></div>
     </div>
 
@@ -41,7 +41,7 @@
 
         <!-- Bestsellers in Catalog -->
         <div class="catalog-bestsellers">
-            <h2>Бестселлеры</h2>
+            <h2><em>Бестселлеры</em></h2>
             <div class="products-grid">
                 {% set bestsellers = products | selectattr('bestseller') | list %}
                 {% if bestsellers %}
@@ -76,7 +76,7 @@
 
         <!-- All Products -->
         <div class="catalog-all-products">
-            <h2>Все товары</h2>
+            <h2>Все <em>товары</em></h2>
             <div class="products-grid">
                 {% if products %}
                     {% for product in products %}

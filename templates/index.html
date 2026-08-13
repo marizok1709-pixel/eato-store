@@ -13,8 +13,8 @@
     </div>
     <div class="hero-content">
         <h1 class="hero-title animate-fade-up">Е.А.Т.О.</h1>
-        <p class="hero-subtitle animate-fade-up delay-1">Бренд одежды, разработанный граффити командой Е.А.Т.О. crew</p>
-        <p class="hero-description animate-fade-up delay-2">Для продвижения true underground культуры</p>
+        <p class="hero-subtitle animate-fade-up delay-1">Бренд одежды, разработанный граффити командой <em>E.A.T.O. crew</em></p>
+        <p class="hero-description animate-fade-up delay-2">Для продвижения <em>true underground</em> культуры</p>
         <a href="#about" class="scroll-indicator animate-fade-up delay-3">↓</a>
     </div>
 </section>
@@ -22,7 +22,7 @@
 <!-- About Section -->
 <section id="about" class="about-section animate-on-scroll">
     <div class="container">
-        <h2 class="section-title animate-on-scroll">О бренде</h2>
+        <h2 class="section-title animate-on-scroll">О <em>бренде</em></h2>
         <div class="about-content animate-on-scroll">
             <div class="about-text">
                 <p class="about-intro animate-on-scroll delay-1">
@@ -42,7 +42,7 @@
 <!-- Pre-order System -->
 <section class="preorder-section animate-on-scroll">
     <div class="container">
-        <h2 class="section-title animate-on-scroll">Как заказать</h2>
+        <h2 class="section-title animate-on-scroll">Как <em>заказать</em></h2>
         <div class="preorder-info">
             <div class="preorder-card animate-zoom-in delay-1">
                 <div class="preorder-icon">1</div>
@@ -66,7 +66,7 @@
 <!-- Bestsellers -->
 <section class="bestsellers-section animate-on-scroll">
     <div class="container">
-        <h2 class="section-title animate-on-scroll">Бестселлеры</h2>
+        <h2 class="section-title animate-on-scroll"><em>Бестселлеры</em></h2>
         <div class="products-grid">
             {% for product in bestsellers %}
             <div class="product-card animate-on-scroll delay-{{ loop.index % 5 + 1 }}">
@@ -98,7 +98,7 @@
 <!-- Photo Album -->
 <section class="gallery-section animate-on-scroll" id="gallery">
     <div class="container">
-        <h2 class="section-title animate-on-scroll">Фотоальбом</h2>
+        <h2 class="section-title animate-on-scroll"><em>Фотоальбом</em></h2>
 
         {% set photos_per_page = 9 %}
         {% set total_pages = (gallery_images|length / photos_per_page)|round(0, 'ceil')|int %}
@@ -136,7 +136,7 @@
 <!-- Collections -->
 <section class="collections-section animate-on-scroll">
     <div class="container">
-        <h2 class="section-title animate-on-scroll">Коллекции</h2>
+        <h2 class="section-title animate-on-scroll"><em>Коллекции</em></h2>
         <div class="collections-grid">
             {% for collection in collections %}
             <a href="{{ url_for('collection', collection_id=collection.id) }}" class="collection-card animate-on-scroll delay-{{ loop.index % 5 + 1 }}">
@@ -160,7 +160,7 @@
 <!-- Social Links -->
 <section class="social-section animate-on-scroll">
     <div class="container">
-        <h2 class="section-title animate-on-scroll">Мы в соцсетях</h2>
+        <h2 class="section-title animate-on-scroll">Мы в <em>соцсетях</em></h2>
         <div class="social-grid">
             <a href="https://t.me/eato_store" target="_blank" class="social-card animate-on-scroll delay-1">
                 <div class="social-icon">TG</div>

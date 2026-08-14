@@ -23,6 +23,29 @@ ORDERS_TEMP_FILE = os.path.join(BASE_DIR, 'orders_temp.xlsx')
 ORDERS_PENDING_FILE = os.path.join(BASE_DIR, 'orders_pending.xlsx')
 
 
+def static_url(endpoint, **values):
+    """url_for that stamps static assets with their mtime.
+
+    nginx serves /static with a 30-day Expires header, so a redeployed file
+    keeps its old URL and returning visitors stay pinned to the copy they
+    cached. Appending the mtime changes the URL whenever the file changes,
+    which forces the fetch instead of waiting a month for the cache to lapse.
+    """
+    if endpoint == 'static':
+        filename = values.get('filename')
+        if filename:
+            try:
+                values['v'] = int(os.stat(os.path.join(app.static_folder, filename)).st_mtime)
+            except OSError:
+                pass
+    return url_for(endpoint, **values)
+
+
+@app.context_processor
+def inject_static_url():
+    return {'url_for': static_url}
+
+
 def init_files():
     if not os.path.exists(PRODUCTS_FILE):
         df = pd.DataFrame(columns=[

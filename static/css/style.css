@@ -150,7 +150,10 @@ body {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background-attachment: fixed;
+    /* The hero is plain black until the video paints, so a video that is slow
+       or blocked degrades to the brand background instead of a still image. */
+    background-color: var(--black);
+    isolation: isolate;
 }
 
 .hero-background {
@@ -159,8 +162,12 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
+    /* Stays at 0 rather than -1: a negative z-index only renders here because
+       no ancestor happens to create a stacking context, which is one stray
+       transform or filter away from hiding the video entirely. */
+    z-index: 0;
     overflow: hidden;
+    background-color: var(--black);
 }
 
 .hero-bg-image {

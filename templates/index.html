@@ -4,9 +4,10 @@
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="hero-background">
-        <video class="hero-bg-image"
-               poster="{{ url_for('static', filename='images/tech/bgmain.jpg') }}"
-               autoplay muted loop playsinline>
+        <video class="hero-bg-image" id="heroVideo"
+               autoplay muted loop playsinline webkit-playsinline
+               preload="auto" disablepictureinpicture
+               aria-hidden="true" tabindex="-1">
             <source src="{{ url_for('static', filename='videos/hero.mp4') }}" type="video/mp4">
         </video>
         <div class="hero-overlay"></div>
@@ -18,6 +19,51 @@
         <a href="#about" class="scroll-indicator animate-fade-up delay-3">↓</a>
     </div>
 </section>
+
+<script>
+/* Hero autoplay recovery.
+   Muted+playsinline autoplay is still refused by iOS Low Power Mode, Android
+   data-saver and most in-app browsers (Telegram/Instagram/TikTok), which is
+   where most of this site's traffic comes from. Without this the hero just
+   sits on a frozen first frame for those visitors. */
+(function () {
+    var video = document.getElementById('heroVideo');
+    if (!video) return;
+
+    /* Some webviews only honour the muted *property*, not the attribute. */
+    video.muted = true;
+    video.defaultMuted = true;
+
+    var gestures = ['touchstart', 'pointerdown', 'click', 'keydown', 'scroll'];
+
+    function play() {
+        if (!video.paused) return;
+        var started = video.play();
+        if (started && started.catch) {
+            started.catch(function () { /* still blocked — a later gesture will retry */ });
+        }
+    }
+
+    function stopRetrying() {
+        gestures.forEach(function (name) { window.removeEventListener(name, play); });
+    }
+
+    gestures.forEach(function (name) {
+        window.addEventListener(name, play, { passive: true });
+    });
+
+    video.addEventListener('playing', stopRetrying);
+    video.addEventListener('loadeddata', play);
+    video.addEventListener('canplay', play);
+
+    /* Webviews commonly suspend playback while backgrounded and never resume. */
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) play();
+    });
+
+    play();
+})();
+</script>
 
 <!-- About Section -->
 <section id="about" class="about-section animate-on-scroll">

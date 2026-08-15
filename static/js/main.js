@@ -173,8 +173,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function updateCartCount(count) {
-    const cartCount = document.getElementById('cartCount');
-    if (cartCount) {
+    // Счётчиков три: десктопный, мобильный в шапке и пункт в выдвижном меню.
+    ['cartCount', 'cartCountMobile', 'cartCountDrawer'].forEach(function(id) {
+        const cartCount = document.getElementById(id);
+        if (!cartCount) return;
+
         cartCount.textContent = count;
         if (count > 0) {
             cartCount.style.display = 'flex';
@@ -186,7 +189,7 @@ function updateCartCount(count) {
         } else {
             cartCount.style.display = 'none';
         }
-    }
+    });
 }
 
 function getCartCount() {
@@ -305,57 +308,6 @@ style.textContent = `
     }
     #cartCount {
         transition: transform 0.2s ease;
-    }
-`;
-document.head.appendChild(style);
-
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        background: var(--white);
-        color: var(--black);
-        padding: 20px 30px;
-        z-index: 3000;
-        animation: slideIn 0.3s ease;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-    `;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
     }
 `;
 document.head.appendChild(style);
@@ -495,4 +447,63 @@ function createThreadConnections() {
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(createThreadConnections, 800);
     window.addEventListener('resize', createThreadConnections);
+});
+/* Мобильное меню (drawer).
+   Почти весь трафик — телефоны из Telegram/TikTok/Instagram, а .main-nav
+   скрыта на узких экранах, поэтому drawer — единственная навигация там. */
+document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.getElementById('navToggle');
+    const nav = document.getElementById('mobileNav');
+    const backdrop = document.getElementById('navBackdrop');
+    if (!toggle || !nav || !backdrop) return;
+
+    let lastFocus = null;
+
+    function isOpen() {
+        return document.body.classList.contains('nav-open');
+    }
+
+    function openNav() {
+        lastFocus = document.activeElement;
+        document.body.classList.add('nav-open');
+        backdrop.hidden = false;
+        nav.removeAttribute('inert');
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.setAttribute('aria-label', 'Закрыть меню');
+        const first = nav.querySelector('a');
+        if (first) first.focus();
+    }
+
+    function closeNav() {
+        document.body.classList.remove('nav-open');
+        nav.setAttribute('inert', '');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Открыть меню');
+        // Ждём конца анимации, чтобы backdrop не исчезал рывком.
+        setTimeout(function() {
+            if (!isOpen()) backdrop.hidden = true;
+        }, 300);
+        if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+    }
+
+    toggle.addEventListener('click', function() {
+        isOpen() ? closeNav() : openNav();
+    });
+
+    backdrop.addEventListener('click', closeNav);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isOpen()) closeNav();
+    });
+
+    // Переход по ссылке внутри drawer — закрываем, иначе при возврате
+    // из bfcache меню осталось бы открытым.
+    nav.addEventListener('click', function(e) {
+        if (e.target.closest('a')) closeNav();
+    });
+
+    // Возврат на десктопную ширину не должен оставлять body заблокированным.
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 968 && isOpen()) closeNav();
+    });
 });

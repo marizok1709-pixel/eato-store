@@ -2418,3 +2418,577 @@ section::before {
         grid-template-columns: 1fr;
     }
 }
+/* ==========================================================================
+   МОБИЛЬНАЯ ВЁРСТКА  (добавлено 2026-08-15)
+   --------------------------------------------------------------------------
+   Почти весь трафик приходит с телефонов из встроенных браузеров Telegram,
+   TikTok и Instagram, поэтому этот блок — не «доработка», а основной режим
+   отображения сайта.
+
+   Блок намеренно идёт последним в файле: он выигрывает по каскаду без
+   !important, и его можно целиком удалить, не задев десктопную вёрстку.
+   Точка перелома — 968px, ровно там, где .main-nav уходит в display:none.
+   ========================================================================== */
+
+/* -- 1. Общее ------------------------------------------------------------ */
+
+html {
+    /* iOS Safari иначе сам увеличивает шрифт при повороте экрана. */
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Длинные слова без пробелов (названия, e-mail) рвут узкий макет. */
+body,
+.hero-description,
+.product-description-short,
+.description-content p,
+.footer-section p,
+.footer-section a {
+    overflow-wrap: break-word;
+}
+
+/* -- 2. Бургер и мобильные элементы шапки -------------------------------- */
+/* По умолчанию скрыты — на десктопе работает обычная .main-nav.            */
+
+.nav-toggle,
+.cart-icon-mobile {
+    display: none;
+}
+
+.nav-toggle {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nav-toggle-bar {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--white);
+    transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+/* Бургер превращается в крестик, когда меню открыто. */
+body.nav-open .nav-toggle-bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+body.nav-open .nav-toggle-bar:nth-child(2) {
+    opacity: 0;
+}
+
+body.nav-open .nav-toggle-bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+.cart-icon-mobile {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    text-decoration: none;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.cart-icon-mobile svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+.cart-count-mobile {
+    position: absolute;
+    top: 4px;
+    right: 2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    background: var(--white);
+    color: var(--black);
+    border-radius: 9px;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* -- 3. Выдвижное меню --------------------------------------------------- */
+
+.nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 1500;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nav-backdrop[hidden] {
+    display: none;
+}
+
+body.nav-open .nav-backdrop {
+    opacity: 1;
+}
+
+.mobile-nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(80vw, 340px);
+    z-index: 1600;
+    background: var(--dark-gray);
+    border-left: 1px solid var(--medium-gray);
+    padding: calc(24px + env(safe-area-inset-top)) 0
+             calc(24px + env(safe-area-inset-bottom));
+    padding-right: env(safe-area-inset-right);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    /* visibility, а не только transform: закрытое меню не должно ловить фокус
+       в браузерах без поддержки inert. */
+    visibility: hidden;
+    transition: transform 0.3s ease, visibility 0s linear 0.3s;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.nav-open .mobile-nav {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.3s ease, visibility 0s;
+}
+
+.mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    margin-top: 40px;
+}
+
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 56px;
+    padding: 0 24px;
+    color: var(--white);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 1.15rem;
+    border-bottom: 1px solid var(--medium-gray);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-link.active {
+    color: var(--black);
+    background: var(--white);
+}
+
+.mobile-nav-count {
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    background: var(--medium-gray);
+    color: var(--white);
+    border-radius: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-nav-link.active .mobile-nav-count {
+    background: var(--black);
+    color: var(--white);
+}
+
+.mobile-nav-account {
+    padding: 28px 24px 0;
+}
+
+.mobile-nav-user {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--light-gray);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.mobile-nav-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 20px;
+    border: 2px solid var(--white);
+    color: var(--white);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.mobile-nav-socials {
+    margin-top: auto;
+    padding: 32px 24px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+.mobile-nav-socials a {
+    color: var(--light-gray);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* При открытии меню фокус уезжает на первую ссылку — это правильно, но
+   синее системное кольцо выбивается из чёрно-белой темы. */
+.mobile-nav a:focus-visible,
+.nav-toggle:focus-visible,
+.cart-icon-mobile:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: -4px;
+}
+
+.mobile-nav-link.active:focus-visible {
+    outline-color: var(--black);
+}
+
+/* -- 4. Собственно мобильный режим --------------------------------------- */
+
+@media (max-width: 968px) {
+
+    /* 4.1 Шапка ---------------------------------------------------------- */
+
+    .nav-toggle,
+    .cart-icon-mobile {
+        display: flex;
+    }
+
+    /* Корзина и вход переехали в drawer и в .cart-icon-mobile. */
+    .header-actions {
+        display: none;
+    }
+
+    .header-container {
+        padding: 10px 12px;
+        padding-top: calc(10px + env(safe-area-inset-top));
+        gap: 4px;
+    }
+
+    .logo {
+        margin-right: auto;
+    }
+
+    .logo-image {
+        height: 40px;
+    }
+
+    /* Пока меню открыто, страница под ним не должна прокручиваться. */
+    body.nav-open {
+        overflow: hidden;
+    }
+
+    /* 4.2 Первый экран --------------------------------------------------- */
+
+    .hero-section {
+        height: 100vh;
+        /* svh не «прыгает» при появлении адресной строки в webview. */
+        height: 100svh;
+        min-height: 520px;
+    }
+
+    .hero-content {
+        padding: 0 20px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Раньше 5rem фиксированно — заголовок обрезался с обеих сторон. */
+    .hero-title {
+        font-size: clamp(2.75rem, 15vw, 5rem);
+        letter-spacing: 0.02em;
+        margin-bottom: 20px;
+        overflow-wrap: break-word;
+    }
+
+    .hero-subtitle {
+        font-size: clamp(0.95rem, 4vw, 1.3rem);
+        letter-spacing: 0.02em;
+        margin-bottom: 14px;
+    }
+
+    .hero-description {
+        font-size: clamp(0.85rem, 3.4vw, 1.1rem);
+    }
+
+    .scroll-indicator {
+        bottom: -60px;
+        font-size: 1.8rem;
+    }
+
+    /* 4.3 Общая типографика и ритм --------------------------------------- */
+
+    section {
+        padding: 60px 0;
+    }
+
+    .container {
+        padding: 0 16px;
+    }
+
+    .section-title {
+        font-size: clamp(1.75rem, 7.5vw, 2.5rem);
+        letter-spacing: 0.12em;
+        margin-bottom: 36px;
+    }
+
+    /* Заголовки страниц отбивались от фиксированной шапки в 150px+100px+50px,
+       что на телефоне давало пустой экран перед контентом. */
+    .page-title,
+    .catalog-section .page-title,
+    .collection-detail .page-title,
+    .lookbook-section .page-title,
+    .order-status-section .page-title,
+    .product-detail .page-title {
+        font-size: clamp(1.75rem, 7.5vw, 2.5rem);
+        letter-spacing: 0.12em;
+        margin-top: 0;
+        padding-top: 0;
+        margin-bottom: 32px;
+    }
+
+    /* Все секции отбиваются на 150px от фиксированной шапки, которая на
+       телефоне занимает 65px, а не 100. Селекторы с `body` — потому что
+       часть этих правил живёт в <style> внутри шаблонов, а те идут в
+       документе после style.css и иначе перебивают его. */
+    body .cart-section,
+    body .product-detail,
+    body .catalog-section,
+    body .collection-detail,
+    body .collection-detail-section,
+    body .collections-list-section,
+    body .lookbook-section,
+    body .order-status-section {
+        padding-top: 90px;
+    }
+
+    /* Секции, центрирующие содержимое по высоте экрана, на телефоне просто
+       уводят его вниз — там достаточно обычного потока. */
+    body .cart-section,
+    body .order-status-section {
+        min-height: 0;
+    }
+
+    /* 4.4 Кнопки и поля — пальцем, а не курсором -------------------------- */
+
+    .btn {
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+    }
+
+    .btn-large {
+        min-height: 54px;
+        font-size: 1rem;
+        padding: 14px 24px;
+    }
+
+    /* 16px — порог, ниже которого iOS зумит страницу при фокусе на поле. */
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px;
+        min-height: 50px;
+    }
+
+    /* 4.5 Каталог: пробковая доска ---------------------------------------- */
+
+    .corkboard {
+        /* Было height:1000px — содержимое обрезалось. */
+        height: auto;
+        padding: 48px 16px 56px;
+        margin: 48px 0;
+        border-width: 4px;
+    }
+
+    .corkboard-header h2 {
+        font-size: clamp(1.4rem, 6.5vw, 2rem);
+        letter-spacing: 0.15em;
+    }
+
+    /* Булавка позиционируется от центра на фиксированные 200px и на узком
+       экране садится прямо на заголовок. Она чисто декоративная — убираем. */
+    .pin {
+        display: none;
+    }
+
+    .catalog-bestsellers h2,
+    .catalog-all-products h2 {
+        font-size: clamp(1.4rem, 6vw, 2rem);
+        margin-bottom: 28px;
+    }
+
+    .catalog-bestsellers,
+    .catalog-all-products {
+        margin-bottom: 56px;
+    }
+
+    /* 4.6 Карточка товара ------------------------------------------------- */
+
+    /* Главная поломка страницы: 1fr === minmax(auto, 1fr), а auto-минимум
+       разрешался в min-content (449px) внутри контейнера в 340px, из-за чего
+       выбор размера и кнопка «в корзину» уезжали за правый край. */
+    .product-detail-grid,
+    .cart-content,
+    .collections-grid,
+    .products-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .product-info-section h1 {
+        font-size: clamp(1.6rem, 7vw, 2.2rem);
+    }
+
+    .product-price-large {
+        font-size: clamp(1.5rem, 6.5vw, 2rem);
+        margin-bottom: 24px;
+    }
+
+    /* 5 колонок на 340px давали миниатюры по 52px. */
+    .thumbnail-gallery {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    .size-options {
+        gap: 10px;
+    }
+
+    .size-btn {
+        width: 56px;
+        height: 56px;
+        font-size: 1rem;
+    }
+
+    .product-full-description {
+        padding: 24px 16px;
+    }
+
+    .product-full-description h2 {
+        font-size: clamp(1.4rem, 6vw, 2rem);
+        margin-bottom: 24px;
+    }
+
+    /* Таблица размеров не сжимается — пусть скроллится сама, а не страница. */
+    .size-chart-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .size-chart th,
+    .size-chart td {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    /* 4.7 Корзина --------------------------------------------------------- */
+
+    .cart-item {
+        grid-template-columns: 80px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    /* 4.8 Подвал ---------------------------------------------------------- */
+
+    .main-footer {
+        margin-top: 60px;
+        padding: 40px 0 calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .footer-container {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+        margin-bottom: 32px;
+    }
+
+    .footer-section h3 {
+        font-size: 1.1rem;
+        margin-bottom: 14px;
+    }
+
+    /* Ссылки в подвале — тоже цель для пальца. */
+    .footer-section a,
+    .social-links a {
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* -- 5. Узкие экраны (iPhone SE и подобные) ------------------------------ */
+
+@media (max-width: 380px) {
+
+    .logo-image {
+        height: 34px;
+    }
+
+    .size-btn {
+        width: 50px;
+        height: 50px;
+    }
+
+    .thumbnail-gallery {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .mobile-nav {
+        width: min(86vw, 320px);
+    }
+}
+
+/* -- 6. Уважать «уменьшить движение» ------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .mobile-nav,
+    .nav-backdrop,
+    .nav-toggle-bar {
+        transition-duration: 0.01ms;
+    }
+
+    .scroll-indicator {
+        animation: none;
+    }
+}

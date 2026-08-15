@@ -293,13 +293,22 @@
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 968px) {
+    /* 150px отступа плюс центрирование по 100vh уводили форму почти на
+       второй экран. На телефоне она должна начинаться сразу под шапкой. */
+    .auth-section {
+        padding-top: 90px;
+        padding-bottom: 60px;
+        min-height: 0;
+        display: block;
+    }
+
     .auth-container-wide {
-        padding: 40px 30px;
+        padding: 32px 20px;
     }
 
     .form-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 0;
     }
 }

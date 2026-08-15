@@ -87,6 +87,8 @@
             <div class="description-content">
                 <p>{{ product.description_card or 'Подробное описание товара будет здесь...' }}</p>
                 <h3>Размерная сетка:</h3>
+                {# Обёртка скроллит саму таблицу на телефоне, чтобы не разъезжалась страница. #}
+                <div class="size-chart-scroll">
                 <table class="size-chart">
                     <tr>
                         <th>Размер</th>
@@ -114,6 +116,7 @@
                         <td>74</td>
                     </tr>
                 </table>
+                </div>
             </div>
         </div>
 </section>
@@ -337,8 +340,10 @@
 }
 
 @media (max-width: 1024px) {
+    /* minmax(0, …), а не голый 1fr: иначе auto-минимум трека разрешается в
+       min-content содержимого и колонка становится шире контейнера. */
     .product-detail-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 40px;
     }
 
@@ -348,12 +353,14 @@
 }
 
 @media (max-width: 768px) {
+    /* 5 колонок на экране 390px — миниатюры по 52px, мимо которых
+       промахивается палец. Держим 4, ниже 380px style.css ставит 3. */
     .thumbnail-gallery {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
 
     .product-full-description {
-        padding: 30px;
+        padding: 24px 16px;
     }
 }
 </style>

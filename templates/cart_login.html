@@ -84,7 +84,16 @@
     color: var(--black);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 968px) {
+    /* Как и на /auth: убираем отступ под десктопную шапку и центрирование
+       по 100vh, иначе содержимое начинается далеко за первым экраном. */
+    .cart-login-section {
+        padding-top: 90px;
+        padding-bottom: 60px;
+        min-height: 0;
+        display: block;
+    }
+
     .cart-login-content {
         padding: 40px 20px;
     }

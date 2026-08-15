@@ -35,8 +35,57 @@
                     <span class="cart-count" id="cartCount">{{ session.get('cart', [])|length }}</span>
                 </a>
             </div>
+
+            {# Mobile-only: cart stays reachable in the bar, everything else moves
+               into the drawer. Both are hidden above the mobile breakpoint. #}
+            <a href="{{ url_for('cart') }}" class="cart-icon-mobile" aria-label="Корзина">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 4h2.2l2.4 11.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.55L21 8H6.2"
+                          fill="none" stroke="currentColor" stroke-width="1.8"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="10" cy="20" r="1.4" fill="currentColor"/>
+                    <circle cx="17" cy="20" r="1.4" fill="currentColor"/>
+                </svg>
+                <span class="cart-count-mobile" id="cartCountMobile">{{ session.get('cart', [])|length }}</span>
+            </a>
+
+            <button type="button" class="nav-toggle" id="navToggle"
+                    aria-label="Открыть меню" aria-expanded="false" aria-controls="mobileNav">
+                <span class="nav-toggle-bar"></span>
+                <span class="nav-toggle-bar"></span>
+                <span class="nav-toggle-bar"></span>
+            </button>
         </div>
     </header>
+
+    <div class="nav-backdrop" id="navBackdrop" hidden></div>
+
+    <nav class="mobile-nav" id="mobileNav" aria-label="Основная навигация" inert>
+        <div class="mobile-nav-links">
+            <a href="{{ url_for('index') }}" class="mobile-nav-link {% if request.endpoint == 'index' %}active{% endif %}">Главная</a>
+            <a href="{{ url_for('catalog') }}" class="mobile-nav-link {% if request.endpoint == 'catalog' %}active{% endif %}">Каталог</a>
+            <a href="{{ url_for('collections_page') }}" class="mobile-nav-link {% if request.endpoint == 'collections_page' %}active{% endif %}">Коллекции</a>
+            <a href="{{ url_for('lookbook') }}" class="mobile-nav-link {% if request.endpoint == 'lookbook' %}active{% endif %}">Лукбук</a>
+            <a href="{{ url_for('cart') }}" class="mobile-nav-link {% if request.endpoint == 'cart' %}active{% endif %}">
+                Корзина <span class="mobile-nav-count" id="cartCountDrawer">{{ session.get('cart', [])|length }}</span>
+            </a>
+        </div>
+
+        <div class="mobile-nav-account">
+            {% if current_user %}
+            <span class="mobile-nav-user">{{ current_user.name }}</span>
+            <a href="{{ url_for('logout') }}" class="mobile-nav-action">Выйти</a>
+            {% else %}
+            <a href="{{ url_for('auth') }}" class="mobile-nav-action">Войти / Регистрация</a>
+            {% endif %}
+        </div>
+
+        <div class="mobile-nav-socials">
+            <a href="https://t.me/eato_store" target="_blank" rel="noopener">Telegram</a>
+            <a href="https://www.tiktok.com/@eato_crew" target="_blank" rel="noopener">TikTok</a>
+            <a href="https://www.instagram.com/e.a.t.o.crew" target="_blank" rel="noopener">Instagram</a>
+        </div>
+    </nav>
 
     <main class="main-content">
         {% block content %}{% endblock %}

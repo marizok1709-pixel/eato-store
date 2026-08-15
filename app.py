@@ -414,6 +414,17 @@ def favicon():
     )
 
 
+@app.route('/site.webmanifest')
+def site_webmanifest():
+    # nginx не знает расширение .webmanifest и отдаёт его как
+    # application/octet-stream — поэтому раздаём через Flask с верным типом.
+    return send_from_directory(
+        os.path.join(app.root_path, 'static'),
+        'site.webmanifest',
+        mimetype='application/manifest+json'
+    )
+
+
 @app.route('/')
 def index():
     products = get_products()

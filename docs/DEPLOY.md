@@ -169,3 +169,8 @@ Newest last. **Update this when you deploy.**
 | 2026-08-15 | `57e1aa4` | Manifest content type | `/root/eato-backup-20260815-173305` |
 
 **Currently live: `57e1aa4`.**
+
+Commits after that one are documentation only (`*.md`), which is not served and
+does not need deploying — so the live code is current. When you next deploy, diff
+against `57e1aa4`, and be aware `git diff --name-only` will list the `.md` files;
+pushing them is harmless but pointless.

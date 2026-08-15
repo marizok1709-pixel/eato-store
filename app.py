@@ -1,6 +1,6 @@
 import threading
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_from_directory
 import pandas as pd
 import os
 from datetime import datetime
@@ -401,6 +401,17 @@ def get_lookbook_images():
     images.sort()
 
     return images
+
+
+@app.route('/favicon.ico')
+def favicon():
+    # nginx отдаёт только /static/, а браузеры и превью-боты (Telegram и пр.)
+    # запрашивают /favicon.ico в корне — без этого там 404.
+    return send_from_directory(
+        os.path.join(app.root_path, 'static'),
+        'favicon.ico',
+        mimetype='image/vnd.microsoft.icon'
+    )
 
 
 @app.route('/')

@@ -55,6 +55,10 @@ works. Locally, without `SMTP_USER` set, no email is sent — the link is
 printed to the console instead, so the flow is testable without real
 credentials. See `docs/ARCHITECTURE.md`.
 
+Checkout requires a delivery address and DMs the owner on Telegram per order.
+Locally, without `TELEGRAM_BOT_TOKEN` set, the formatted order message prints
+to the console instead of sending — same pattern as email verification.
+
 ## Testing a UI change at phone width
 
 Do not trust `--window-size=390` with headless Chrome on macOS: the window is

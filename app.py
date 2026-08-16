@@ -2,6 +2,8 @@ import threading
 import secrets
 import smtplib
 from email.message import EmailMessage
+import urllib.request
+import urllib.parse
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_from_directory
 import pandas as pd
@@ -19,6 +21,9 @@ SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', 465))
 SMTP_USER = os.environ.get('SMTP_USER')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
+
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
 
 VERIFICATION_TOKEN_TTL = timedelta(hours=24)
 VERIFICATION_RESEND_COOLDOWN = timedelta(seconds=60)
@@ -205,21 +210,26 @@ def save_user_cart(user_id, cart_data):
     df.to_excel(USER_CARTS_FILE, index=False, engine='openpyxl')
 
 
+ORDERS_SCHEMA = [
+    'order_id', 'user_id', 'items', 'total',
+    'processing', 'production', 'shipping',
+    'created_at', 'email', 'recipient_name', 'recipient_phone',
+    'postal_code', 'city', 'address', 'delivery_method'
+]
+# Force every column to be read back as text — otherwise pandas infers
+# numeric-looking values (phone numbers, postal codes) as floats and
+# silently drops leading "+"/zeros. Code that needs numbers already casts
+# explicitly with int(...).
+ORDERS_DTYPES = {column: str for column in ORDERS_SCHEMA}
+
+
 def init_orders():
     if not os.path.exists(ORDERS_FILE):
-        df = pd.DataFrame(columns=[
-            'order_id', 'user_id', 'items', 'total',
-            'processing', 'production', 'shipping',
-            'created_at'
-        ])
+        df = pd.DataFrame(columns=ORDERS_SCHEMA)
         df.to_excel(ORDERS_FILE, index=False, engine='openpyxl')
 
     if not os.path.exists(ORDERS_PENDING_FILE):
-        df = pd.DataFrame(columns=[
-            'order_id', 'user_id', 'items', 'total',
-            'processing', 'production', 'shipping',
-            'created_at'
-        ])
+        df = pd.DataFrame(columns=ORDERS_SCHEMA)
         df.to_excel(ORDERS_PENDING_FILE, index=False, engine='openpyxl')
 
 
@@ -239,7 +249,7 @@ def merge_pending_orders():
         if not os.path.exists(ORDERS_PENDING_FILE):
             return
 
-        df_pending = pd.read_excel(ORDERS_PENDING_FILE, engine='openpyxl')
+        df_pending = pd.read_excel(ORDERS_PENDING_FILE, engine='openpyxl', dtype=ORDERS_DTYPES)
 
         if df_pending.empty:
             return
@@ -251,7 +261,7 @@ def merge_pending_orders():
 
         print(f"🔄 Найдено {len(df_pending)} pending заказов, объединяю...")
 
-        df_main = pd.read_excel(ORDERS_FILE, engine='openpyxl')
+        df_main = pd.read_excel(ORDERS_FILE, engine='openpyxl', dtype=ORDERS_DTYPES)
 
         # Объединяем
         df_merged = pd.concat([df_main, df_pending], ignore_index=True)
@@ -259,11 +269,7 @@ def merge_pending_orders():
         # Сохраняем
         df_merged.to_excel(ORDERS_FILE, index=False, engine='openpyxl')
 
-        df_empty = pd.DataFrame(columns=[
-            'order_id', 'user_id', 'items', 'total',
-            'processing', 'production', 'shipping',
-            'created_at'
-        ])
+        df_empty = pd.DataFrame(columns=ORDERS_SCHEMA)
         df_empty.to_excel(ORDERS_PENDING_FILE, index=False, engine='openpyxl')
 
         print(f"✅ Pending заказы объединены с основным файлом")
@@ -282,13 +288,36 @@ def background_sync():
         time.sleep(30)  # Ждём 30 секунд
 
 
+def send_order_telegram_notification(order_data):
+    items_lines = '\n'.join(f'- {item.strip()}' for item in order_data['items'].split(', '))
+    message = (
+        f"🆕 Новый заказ #{order_data['order_id']} от {order_data['created_at']}\n\n"
+        f"Товары:\n{items_lines}\n\n"
+        f"Итого: {order_data['total']} ₽\n\n"
+        f"Получатель: {order_data['recipient_name']}\n"
+        f"Телефон: {order_data['recipient_phone']}\n"
+        f"Email: {order_data['email']}\n\n"
+        f"Доставка: {order_data['delivery_method']}\n"
+        f"{order_data['postal_code']}, {order_data['city']}, {order_data['address']}"
+    )
+
+    if not TELEGRAM_BOT_TOKEN:
+        print(f'[telegram] TELEGRAM_BOT_TOKEN не задан — сообщение о заказе:\n{message}')
+        return
+
+    url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
+    payload = urllib.parse.urlencode({'chat_id': TELEGRAM_CHAT_ID, 'text': message}).encode()
+    with urllib.request.urlopen(urllib.request.Request(url, data=payload), timeout=10) as response:
+        response.read()
+
+
 def save_order(order_data):
     try:
         if is_file_locked(ORDERS_FILE):
             print(f"⚠️ Файл orders.xlsx заблокирован, записываю в pending...")
 
             # Записываем в pending файл
-            df = pd.read_excel(ORDERS_PENDING_FILE, engine='openpyxl')
+            df = pd.read_excel(ORDERS_PENDING_FILE, engine='openpyxl', dtype=ORDERS_DTYPES)
             new_row = pd.DataFrame([order_data])
             df = pd.concat([df, new_row], ignore_index=True)
             df.to_excel(ORDERS_PENDING_FILE, index=False, engine='openpyxl')
@@ -296,7 +325,7 @@ def save_order(order_data):
             print(f"✅ Заказ {order_data.get('order_id')} сохранён в pending")
             return True
         else:
-            df = pd.read_excel(ORDERS_FILE, engine='openpyxl')
+            df = pd.read_excel(ORDERS_FILE, engine='openpyxl', dtype=ORDERS_DTYPES)
             new_row = pd.DataFrame([order_data])
             df = pd.concat([df, new_row], ignore_index=True)
             df.to_excel(ORDERS_FILE, index=False, engine='openpyxl')
@@ -314,7 +343,7 @@ def get_user_orders(user_id):
 
         # Читаем основной файл
         try:
-            df_main = pd.read_excel(ORDERS_FILE, engine='openpyxl')
+            df_main = pd.read_excel(ORDERS_FILE, engine='openpyxl', dtype=ORDERS_DTYPES)
             for _, row in df_main.iterrows():
                 if int(row.get('user_id', 0)) == user_id:
                     order = {
@@ -332,7 +361,7 @@ def get_user_orders(user_id):
             print(f"Ошибка чтения основного файла: {e}")
 
         try:
-            df_pending = pd.read_excel(ORDERS_PENDING_FILE, engine='openpyxl')
+            df_pending = pd.read_excel(ORDERS_PENDING_FILE, engine='openpyxl', dtype=ORDERS_DTYPES)
             for _, row in df_pending.iterrows():
                 if int(row.get('user_id', 0)) == user_id:
                     order = {
@@ -831,6 +860,11 @@ def checkout():
         data = request.json
         order_id = str(uuid.uuid4())[:8].upper()
 
+        # Данные доставки — обязательны для передачи заказа курьеру
+        delivery_fields = ['email', 'recipient_name', 'recipient_phone', 'postal_code', 'city', 'address', 'delivery_method']
+        if any(not data.get(field, '').strip() for field in delivery_fields):
+            return jsonify({'success': False})
+
         # Формируем строку с товарами
         cart_items = session.get('cart', [])
         items_str = ', '.join(
@@ -845,11 +879,25 @@ def checkout():
             'processing': 1,  # Первый статус - принято в обработку
             'production': 0,
             'shipping': 0,
-            'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'email': data['email'].strip(),
+            'recipient_name': data['recipient_name'].strip(),
+            'recipient_phone': data['recipient_phone'].strip(),
+            'postal_code': data['postal_code'].strip(),
+            'city': data['city'].strip(),
+            'address': data['address'].strip(),
+            'delivery_method': data['delivery_method'].strip()
         }
 
         # Сохраняем в Excel
         save_order(order_data)
+
+        # Уведомляем владельца в Telegram — Excel остаётся основным хранилищем,
+        # сбой отправки не должен ломать оформление заказа
+        try:
+            send_order_telegram_notification(order_data)
+        except Exception as e:
+            print(f"❌ Не удалось отправить уведомление в Telegram: {e}")
 
         # Очищаем корзину
         session['cart'] = []

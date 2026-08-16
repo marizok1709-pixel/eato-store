@@ -107,6 +107,34 @@
                         <input type="email" name="email" required placeholder="your@email.com">
                     </div>
                     <div class="form-group">
+                        <label>ФИО получателя *</label>
+                        <input type="text" name="recipient_name" required placeholder="Иванов Иван Иванович">
+                    </div>
+                    <div class="form-group">
+                        <label>Телефон получателя *</label>
+                        <input type="tel" name="recipient_phone" required placeholder="+79991234567">
+                    </div>
+                    <div class="form-group">
+                        <label>Индекс *</label>
+                        <input type="text" name="postal_code" required placeholder="190000">
+                    </div>
+                    <div class="form-group">
+                        <label>Город *</label>
+                        <input type="text" name="city" required placeholder="Санкт-Петербург">
+                    </div>
+                    <div class="form-group">
+                        <label>Адрес *</label>
+                        <input type="text" name="address" required placeholder="улица, дом, квартира/офис">
+                    </div>
+                    <div class="form-group">
+                        <label>Способ доставки</label>
+                        <select name="delivery_method">
+                            <option value="Курьером">Курьером</option>
+                            <option value="Пункт выдачи">Пункт выдачи</option>
+                            <option value="Почта России">Почта России</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Способ оплаты</label>
                         <select name="payment">
                             <option value="card">Банковская карта</option>

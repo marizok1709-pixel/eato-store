@@ -14,7 +14,7 @@ There is no database. pandas reads and writes `.xlsx` files on every request.
 | `products.xlsx` | 6 | `id, name, collection, price, description, description_card, sizes, image, sold_out, bestseller` |
 | `collections.xlsx` | 1 | `id, name, image, description, product_ids` |
 | `users.xlsx` | 2 | `id, name, email, phone, password, email_verified, verification_token, verification_sent_at` |
-| `orders.xlsx` | 2 | `order_id, user_id, items, total, processing, production, shipping, created_at` |
+| `orders.xlsx` | 2 | `order_id, user_id, items, total, processing, production, shipping, created_at, email, recipient_name, recipient_phone, postal_code, city, address, delivery_method` |
 | `orders_pending.xlsx` | 0 | same as `orders` |
 | `user_carts.xlsx` | 1 | `user_id, cart_data` |
 | `orders_temp.xlsx` | 0 | empty, no columns — vestigial |
@@ -25,6 +25,33 @@ server and differs.
 Passwords are hashed with Werkzeug (`generate_password_hash` /
 `check_password_hash`), not stored plainly. Order status is three integer flags
 (`processing`, `production`, `shipping`) rather than one state column.
+
+**All `orders.xlsx`/`orders_pending.xlsx` reads pass `dtype=ORDERS_DTYPES`**
+(`app.py`, next to `ORDERS_SCHEMA`) — forcing every column to text. Without
+it, pandas silently infers numeric-looking values as floats on read, which
+strips the `+` off phone numbers and can drop leading zeros from postal
+codes, and it gets worse on every re-read/rewrite (`save_order()` and
+`merge_pending_orders()` both read-modify-write the whole file). Code that
+needs a real number (`processing`, `total`, …) already casts explicitly
+with `int(...)`.
+
+### Delivery info + Telegram order notifications
+
+Checkout (`/checkout`, `app.py`) now requires `email`, `recipient_name`,
+`recipient_phone`, `postal_code`, `city`, `address`, `delivery_method` —
+before this, the site collected no shipping address at all. Missing any of
+them returns `{success: false}`, which the existing front-end `alert()` in
+`cart.html` already handles — no new JS needed, the checkout form just
+serializes via `FormData`/`Object.fromEntries`.
+
+After `save_order()`, `send_order_telegram_notification()` sends the same
+information as a formatted Telegram DM to the brand owner via
+`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` (stdlib `urllib`, no new
+dependency). This is **additive, not a replacement** — `orders.xlsx` stays
+the system of record; a Telegram failure is caught and logged, never blocks
+checkout. If `TELEGRAM_BOT_TOKEN` is unset, the message prints to stdout
+instead of sending, same local-dev fallback pattern as
+`send_verification_email()`.
 
 ### Email verification
 

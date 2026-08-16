@@ -73,7 +73,7 @@ locked out or the app crashes sending mail:
    ssh -i ~/.ssh/eato_deploy root@82.97.245.77 '
    cd /opt/eato
    cp users.xlsx /root/users.xlsx.pre-verification-migration
-   python3 -c "
+   /opt/eato/.venv/bin/python3 -c "
    import pandas as pd
    df = pd.read_excel(\"users.xlsx\", engine=\"openpyxl\")
    df[\"email_verified\"] = 1
@@ -83,10 +83,43 @@ locked out or the app crashes sending mail:
    "'
    ```
 
+   **Use the app's venv Python, not the system one** — system `python3` on
+   this box has no `pandas` installed; only `/opt/eato/.venv/bin/python3`
+   (the interpreter gunicorn itself runs under, per `eato.service`) does.
+
    Do this **before** restarting the service with the new code, and confirm
    the row count didn't change (`stat`/`sha256sum` won't help here since the
    content legitimately changes — just eyeball the row count and that `id`,
    `email`, `password` are untouched).
+
+---
+
+## One-time: before the first deploy that includes Telegram order notifications
+
+Checkout now requires a delivery address and DMs the owner via a Telegram bot
+after each order (`/checkout`, `send_order_telegram_notification()` in
+`app.py`; see `ARCHITECTURE.md`). No `orders.xlsx` migration is needed this
+time — old rows simply lack the new columns, and nothing requires them to
+have values. Just the bot credentials:
+
+1. **Create the bot** (whoever owns the Telegram account that should send
+   these — likely the owner himself): message **@BotFather** →
+   `/newbot` → give it a name → copy the token it returns.
+2. **Get the target chat ID**: send the new bot any message, then open
+   `https://api.telegram.org/bot<token>/getUpdates` in a browser and read
+   `result[0].message.chat.id` out of the JSON.
+3. **Add both to `/etc/eato.env`**, same pattern as the SMTP vars — back the
+   file up first:
+
+   ```
+   TELEGRAM_BOT_TOKEN=<token from BotFather>
+   TELEGRAM_CHAT_ID=<chat id from getUpdates>
+   ```
+
+   If unset, the app doesn't crash — it prints the order message to the
+   gunicorn log instead of sending it (see `send_order_telegram_notification`
+   in `app.py`), so checkout keeps working and `orders.xlsx` keeps getting
+   written either way. But the owner won't get anything until these are set.
 
 ---
 

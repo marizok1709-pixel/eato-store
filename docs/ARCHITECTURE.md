@@ -13,7 +13,7 @@ There is no database. pandas reads and writes `.xlsx` files on every request.
 |---|---|---|
 | `products.xlsx` | 6 | `id, name, collection, price, description, description_card, sizes, image, sold_out, bestseller` |
 | `collections.xlsx` | 1 | `id, name, image, description, product_ids` |
-| `users.xlsx` | 2 | `id, name, email, phone, password` |
+| `users.xlsx` | 2 | `id, name, email, phone, password, email_verified, verification_token, verification_sent_at` |
 | `orders.xlsx` | 2 | `order_id, user_id, items, total, processing, production, shipping, created_at` |
 | `orders_pending.xlsx` | 0 | same as `orders` |
 | `user_carts.xlsx` | 1 | `user_id, cart_data` |
@@ -25,6 +25,21 @@ server and differs.
 Passwords are hashed with Werkzeug (`generate_password_hash` /
 `check_password_hash`), not stored plainly. Order status is three integer flags
 (`processing`, `production`, `shipping`) rather than one state column.
+
+### Email verification
+
+New accounts start with `email_verified=0` and cannot log in
+(`/auth`, `action=login`) until they visit `/verify-email/<token>`, which sets
+`email_verified=1` and clears `verification_token` so the link can't be reused.
+`verification_sent_at` drives both a 24h link expiry and a 60s resend cooldown
+(`action=resend_verification` on `/auth`). Mail goes out via
+`send_verification_email()` in `app.py` using plain `smtplib` (stdlib, no new
+dependency) and `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD` from the
+environment — same pattern as `SECRET_KEY`. **If `SMTP_USER` is unset the app
+does not send anything; it prints the verification link to stdout instead**,
+so the flow is testable locally without real credentials. See `DEPLOY.md` for
+the required `/etc/eato.env` entries and the one-time production migration of
+existing accounts.
 
 `product_ids` on a collection is a comma-separated string (`"1,2,3,4,7,8"`).
 **Product IDs are not contiguous** — 5 and 6 are missing — so never assume
@@ -57,7 +72,8 @@ returns `False`. It is Windows thinking on an Ubuntu box.
 /lookbook                    lookbook
 /product/<int:id>            product
 /cart                        cart
-/auth            GET POST    auth          login + register in one view, `action` switches
+/auth            GET POST    auth          login + register + resend_verification, `action` switches
+/verify-email/<token>        verify_email  confirms a registration, logs the user in, then redirects to /
 /logout                      logout
 /checkout        GET POST    checkout      GET renders cart.html; POST takes JSON, writes the order
 /order-status/<order_id>     order_status  ⚠️ broken — see DEFECTS.md

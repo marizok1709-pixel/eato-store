@@ -1,9 +1,12 @@
 import threading
+import secrets
+import smtplib
+from email.message import EmailMessage
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, send_from_directory
 import pandas as pd
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 import time
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -11,6 +14,14 @@ import json
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'eato_secret_key_2026')
+
+SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', 465))
+SMTP_USER = os.environ.get('SMTP_USER')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
+
+VERIFICATION_TOKEN_TTL = timedelta(hours=24)
+VERIFICATION_RESEND_COOLDOWN = timedelta(seconds=60)
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -55,7 +66,10 @@ def init_files():
         df.to_excel(PRODUCTS_FILE, index=False, engine='openpyxl')
 
     if not os.path.exists(USERS_FILE):
-        df = pd.DataFrame(columns=['id', 'name', 'email', 'phone', 'password'])
+        df = pd.DataFrame(columns=[
+            'id', 'name', 'email', 'phone', 'password',
+            'email_verified', 'verification_token', 'verification_sent_at'
+        ])
         df.to_excel(USERS_FILE, index=False, engine='openpyxl')
 
     if not os.path.exists(USER_CARTS_FILE):
@@ -111,12 +125,18 @@ def get_users():
         df = pd.read_excel(USERS_FILE, engine='openpyxl')
         users = []
         for _, row in df.iterrows():
+            email_verified = row.get('email_verified', 1)
+            token = row.get('verification_token', '')
+            sent_at = row.get('verification_sent_at', '')
             user = {
                 'id': int(row.get('id', 0)),
                 'name': str(row.get('name', '')),
                 'email': str(row.get('email', '')),
                 'phone': str(row.get('phone', '')),
-                'password': str(row.get('password', ''))
+                'password': str(row.get('password', '')),
+                'email_verified': bool(int(email_verified)) if pd.notna(email_verified) else True,
+                'verification_token': str(token) if pd.notna(token) else '',
+                'verification_sent_at': str(sent_at) if pd.notna(sent_at) else ''
             }
             users.append(user)
         return users
@@ -129,6 +149,35 @@ def save_user(user_data):
     new_df = pd.DataFrame([user_data])
     df = pd.concat([df, new_df], ignore_index=True)
     df.to_excel(USERS_FILE, index=False, engine='openpyxl')
+
+
+def update_user(user_id, updates):
+    df = pd.read_excel(USERS_FILE, engine='openpyxl')
+    for key, value in updates.items():
+        df.loc[df['id'] == user_id, key] = value
+    df.to_excel(USERS_FILE, index=False, engine='openpyxl')
+
+
+def send_verification_email(to_email, name, token):
+    verify_url = url_for('verify_email', token=token, _external=True)
+
+    if not SMTP_USER:
+        print(f'[verify-email] SMTP_USER не задан — ссылка для {to_email}: {verify_url}')
+        return
+
+    message = EmailMessage()
+    message['Subject'] = 'Подтверждение регистрации — Е.А.Т.О.'
+    message['From'] = SMTP_USER
+    message['To'] = to_email
+    message.set_content(
+        f'{name}, привет!\n\n'
+        f'Подтвердите ваш email, перейдя по ссылке:\n{verify_url}\n\n'
+        f'Ссылка действительна 24 часа. Если вы не регистрировались на еато.store, просто проигнорируйте это письмо.'
+    )
+
+    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as smtp:
+        smtp.login(SMTP_USER, SMTP_PASSWORD)
+        smtp.send_message(message)
 
 
 def get_user_cart(user_id):
@@ -534,7 +583,9 @@ def auth():
                     user = u
                     break
 
-            if user:
+            if user and not user['email_verified']:
+                flash('Email ещё не подтверждён. Проверьте почту или отправьте письмо ещё раз ниже.', 'error')
+            elif user:
                 session['user_id'] = user['id']
                 session['user_name'] = user['name']
                 # Загружаем корзину пользователя
@@ -590,23 +641,86 @@ def auth():
                 # Создаем нового пользователя
                 new_user_id = len(users) + 1
                 hashed_password = generate_password_hash(password)
+                token = secrets.token_urlsafe(32)
                 new_user = {
                     'id': new_user_id,
                     'name': name,
                     'email': email,
                     'phone': phone,
-                    'password': hashed_password
+                    'password': hashed_password,
+                    'email_verified': 0,
+                    'verification_token': token,
+                    'verification_sent_at': datetime.now().isoformat()
                 }
                 save_user(new_user)
 
-                session['user_id'] = new_user_id
-                session['user_name'] = name
-                session['cart'] = []
+                try:
+                    send_verification_email(email, name, token)
+                    flash('Регистрация почти завершена — мы отправили письмо со ссылкой для подтверждения на ваш email.', 'success')
+                except Exception:
+                    flash('Аккаунт создан, но письмо отправить не удалось. Отправьте его ещё раз ниже.', 'error')
 
-                flash('Регистрация успешна!', 'success')
-                return redirect(url_for('index'))
+        elif action == 'resend_verification':
+            email = request.form.get('email', '').strip()
+            users = get_users()
+            user = next((u for u in users if u['email'] == email), None)
+
+            if user and not user['email_verified']:
+                sent_at = user['verification_sent_at']
+                on_cooldown = False
+                if sent_at:
+                    try:
+                        on_cooldown = datetime.now() - datetime.fromisoformat(sent_at) < VERIFICATION_RESEND_COOLDOWN
+                    except ValueError:
+                        pass
+
+                if on_cooldown:
+                    flash('Письмо уже отправлено, подождите немного и проверьте почту.', 'error')
+                else:
+                    token = secrets.token_urlsafe(32)
+                    update_user(user['id'], {
+                        'verification_token': token,
+                        'verification_sent_at': datetime.now().isoformat()
+                    })
+                    try:
+                        send_verification_email(user['email'], user['name'], token)
+                    except Exception:
+                        pass
+                    flash('Если такой аккаунт существует и email ещё не подтверждён, письмо отправлено.', 'success')
+            else:
+                flash('Если такой аккаунт существует и email ещё не подтверждён, письмо отправлено.', 'success')
 
     return render_template('auth.html')
+
+
+@app.route('/verify-email/<token>')
+def verify_email(token):
+    users = get_users()
+    user = next((u for u in users if u['verification_token'] and u['verification_token'] == token), None)
+
+    if not user:
+        flash('Ссылка недействительна или уже использована.', 'error')
+        return redirect(url_for('auth'))
+
+    sent_at = user['verification_sent_at']
+    expired = True
+    if sent_at:
+        try:
+            expired = datetime.now() - datetime.fromisoformat(sent_at) > VERIFICATION_TOKEN_TTL
+        except ValueError:
+            expired = True
+
+    if expired:
+        flash('Срок действия ссылки истёк. Отправьте письмо ещё раз ниже.', 'error')
+        return redirect(url_for('auth'))
+
+    update_user(user['id'], {'email_verified': 1, 'verification_token': ''})
+
+    session['user_id'] = user['id']
+    session['user_name'] = user['name']
+    session['cart'] = get_user_cart(user['id'])
+    flash('Email подтверждён, добро пожаловать!', 'success')
+    return redirect(url_for('index'))
 
 
 @app.route('/logout')

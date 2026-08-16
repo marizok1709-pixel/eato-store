@@ -40,6 +40,56 @@ requests in production.** That 30-day cache is a real trap — see step 5.
 
 ---
 
+## One-time: before the first deploy that includes email verification
+
+Registration now requires clicking a link emailed to the user before they can
+log in (`/auth`, `/verify-email/<token>`; see `ARCHITECTURE.md`). Two things
+must happen **before** that `app.py` reaches the server, or real customers get
+locked out or the app crashes sending mail:
+
+1. **Add SMTP credentials to `/etc/eato.env`** (same file `SECRET_KEY` lives
+   in), then restart the service so gunicorn picks them up:
+
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=465
+   SMTP_USER=noreply.eato.store@gmail.com
+   SMTP_PASSWORD=<gmail app password, not the account password>
+   ```
+
+   If these are unset, the app doesn't crash — it logs the verification link
+   instead of emailing it (see `send_verification_email` in `app.py`) — but on
+   the live server that means **nobody can ever complete registration**, since
+   nothing reads the gunicorn log for a link. Do not deploy this feature to
+   production without them set.
+
+2. **Migrate the live `users.xlsx` before deploying the new `app.py`.** The
+   code now expects `email_verified` / `verification_token` /
+   `verification_sent_at` columns. Existing accounts never went through
+   verification and must be grandfathered (`email_verified=1`) so they aren't
+   locked out on the next login. Back it up first, per the rule above:
+
+   ```bash
+   ssh -i ~/.ssh/eato_deploy root@82.97.245.77 '
+   cd /opt/eato
+   cp users.xlsx /root/users.xlsx.pre-verification-migration
+   python3 -c "
+   import pandas as pd
+   df = pd.read_excel(\"users.xlsx\", engine=\"openpyxl\")
+   df[\"email_verified\"] = 1
+   df[\"verification_token\"] = \"\"
+   df[\"verification_sent_at\"] = \"\"
+   df.to_excel(\"users.xlsx\", index=False, engine=\"openpyxl\")
+   "'
+   ```
+
+   Do this **before** restarting the service with the new code, and confirm
+   the row count didn't change (`stat`/`sha256sum` won't help here since the
+   content legitimately changes — just eyeball the row count and that `id`,
+   `email`, `password` are untouched).
+
+---
+
 ## 0. What are you pushing?
 
 ```bash

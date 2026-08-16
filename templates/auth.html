@@ -82,6 +82,16 @@
             </div>
             {% endif %}
             {% endwith %}
+
+            <!-- Повторная отправка письма с подтверждением -->
+            <form class="auth-resend" method="POST" action="{{ url_for('auth') }}">
+                <input type="hidden" name="action" value="resend_verification">
+                <p>Не пришло письмо с подтверждением?</p>
+                <div class="form-group">
+                    <input type="email" name="email" required placeholder="example@mail.com">
+                </div>
+                <button type="submit" class="btn btn-primary">Отправить снова</button>
+            </form>
         </div>
     </div>
 </section>
@@ -198,6 +208,18 @@
     margin-top: 30px;
     text-align: center;
     color: var(--light-gray);
+}
+
+.auth-resend {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid var(--dark-gray);
+    text-align: center;
+    color: var(--light-gray);
+}
+
+.auth-resend p {
+    margin-bottom: 15px;
 }
 
 .auth-switch p {

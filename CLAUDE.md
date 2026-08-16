@@ -50,6 +50,11 @@ Note `flask run` without `--debug` **caches templates** — restart after editin
 any `.html`, or you will be looking at stale output and think your change
 failed.
 
+Registration requires clicking an emailed verification link before login
+works. Locally, without `SMTP_USER` set, no email is sent — the link is
+printed to the console instead, so the flow is testable without real
+credentials. See `docs/ARCHITECTURE.md`.
+
 ## Testing a UI change at phone width
 
 Do not trust `--window-size=390` with headless Chrome on macOS: the window is

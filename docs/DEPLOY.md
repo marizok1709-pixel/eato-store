@@ -251,17 +251,28 @@ Newest last. **Update this when you deploy.**
 | 2026-08-15 | `3f5886f` | Favicon set | `/root/eato-backup-20260815-173120` |
 | 2026-08-15 | `57e1aa4` | Manifest content type | `/root/eato-backup-20260815-173305` |
 | 2026-08-16 | `c0dfaa7` | Email verification required before login | `/root/eato-backup-20260816-213436` |
+| 2026-08-16 | `7c30809` | Delivery address at checkout + Telegram order notifications | `/root/eato-backup-20260816-232428` |
 
-**Currently live: `c0dfaa7`.**
+**Currently live: `7c30809`.**
 
-Also done as part of this deploy, outside the usual file-push: added
-`SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD` to `/etc/eato.env`
-(backed up to `/root/eato.env.bak-*`), and migrated production `users.xlsx`
-to grandfather the 4 existing accounts as `email_verified=1`. Verified live:
-registered a real test account, confirmed login was blocked pre-verification,
-received the real email, clicked the real link, confirmed it logged in — then
-removed the test row, leaving the original 4 accounts untouched.
+**`c0dfaa7` deploy notes:** added `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/
+`SMTP_PASSWORD` to `/etc/eato.env` (backed up to `/root/eato.env.bak-*`), and
+migrated production `users.xlsx` to grandfather the 4 existing accounts as
+`email_verified=1`. Verified live: registered a real test account, confirmed
+login was blocked pre-verification, received the real email, clicked the
+real link, confirmed it logged in — then removed the test row, leaving the
+original 4 accounts untouched.
 
-When you next deploy, diff against `c0dfaa7`, and be aware `git diff --name-only`
+**`7c30809` deploy notes:** added `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`
+(comma-separated, notifies both the owner and Mark) to `/etc/eato.env`
+(backed up to a fresh `/root/eato.env.bak-*`). No `users.xlsx` migration
+needed this time — old order rows just lack the new columns. Verified live:
+registered a real account, verified it, placed a real order with a full
+delivery address, confirmed the `orders.xlsx` row was correct (phone `+`
+and postal code intact — see the `ORDERS_DTYPES` note in `ARCHITECTURE.md`
+for why that matters), confirmed no Telegram errors in `journalctl`, then
+removed the test order and account, leaving the 4 real accounts untouched.
+
+When you next deploy, diff against `7c30809`, and be aware `git diff --name-only`
 will list any `.md` files touched; pushing them is harmless but pointless since
 they're not served.

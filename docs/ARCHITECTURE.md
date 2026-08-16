@@ -46,7 +46,8 @@ serializes via `FormData`/`Object.fromEntries`.
 
 After `save_order()`, `send_order_telegram_notification()` sends the same
 information as a formatted Telegram DM to the brand owner via
-`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` (stdlib `urllib`, no new
+`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` — the latter accepts a comma-separated
+list to notify several people (stdlib `urllib`, no new
 dependency). This is **additive, not a replacement** — `orders.xlsx` stays
 the system of record; a Telegram failure is caught and logged, never blocks
 checkout. If `TELEGRAM_BOT_TOKEN` is unset, the message prints to stdout

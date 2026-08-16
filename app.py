@@ -23,7 +23,7 @@ SMTP_USER = os.environ.get('SMTP_USER')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
 
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
+TELEGRAM_CHAT_IDS = [chat_id.strip() for chat_id in os.environ.get('TELEGRAM_CHAT_ID', '').split(',') if chat_id.strip()]
 
 VERIFICATION_TOKEN_TTL = timedelta(hours=24)
 VERIFICATION_RESEND_COOLDOWN = timedelta(seconds=60)
@@ -306,9 +306,13 @@ def send_order_telegram_notification(order_data):
         return
 
     url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
-    payload = urllib.parse.urlencode({'chat_id': TELEGRAM_CHAT_ID, 'text': message}).encode()
-    with urllib.request.urlopen(urllib.request.Request(url, data=payload), timeout=10) as response:
-        response.read()
+    for chat_id in TELEGRAM_CHAT_IDS:
+        try:
+            payload = urllib.parse.urlencode({'chat_id': chat_id, 'text': message}).encode()
+            with urllib.request.urlopen(urllib.request.Request(url, data=payload), timeout=10) as response:
+                response.read()
+        except Exception as e:
+            print(f"❌ Не удалось отправить уведомление в Telegram (chat_id={chat_id}): {e}")
 
 
 def save_order(order_data):

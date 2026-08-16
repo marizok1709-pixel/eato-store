@@ -113,7 +113,7 @@ have values. Just the bot credentials:
 
    ```
    TELEGRAM_BOT_TOKEN=<token from BotFather>
-   TELEGRAM_CHAT_ID=<chat id from getUpdates>
+   TELEGRAM_CHAT_ID=<chat id from getUpdates>[,<another chat id>, ...]
    ```
 
    If unset, the app doesn't crash — it prints the order message to the

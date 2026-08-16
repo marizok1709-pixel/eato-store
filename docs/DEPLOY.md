@@ -217,10 +217,18 @@ Newest last. **Update this when you deploy.**
 | 2026-08-15 | `c9a631e` | Mobile UI; Instagram link removed | `/root/eato-backup-20260815-135146` |
 | 2026-08-15 | `3f5886f` | Favicon set | `/root/eato-backup-20260815-173120` |
 | 2026-08-15 | `57e1aa4` | Manifest content type | `/root/eato-backup-20260815-173305` |
+| 2026-08-16 | `c0dfaa7` | Email verification required before login | `/root/eato-backup-20260816-213436` |
 
-**Currently live: `57e1aa4`.**
+**Currently live: `c0dfaa7`.**
 
-Commits after that one are documentation only (`*.md`), which is not served and
-does not need deploying — so the live code is current. When you next deploy, diff
-against `57e1aa4`, and be aware `git diff --name-only` will list the `.md` files;
-pushing them is harmless but pointless.
+Also done as part of this deploy, outside the usual file-push: added
+`SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD` to `/etc/eato.env`
+(backed up to `/root/eato.env.bak-*`), and migrated production `users.xlsx`
+to grandfather the 4 existing accounts as `email_verified=1`. Verified live:
+registered a real test account, confirmed login was blocked pre-verification,
+received the real email, clicked the real link, confirmed it logged in — then
+removed the test row, leaving the original 4 accounts untouched.
+
+When you next deploy, diff against `c0dfaa7`, and be aware `git diff --name-only`
+will list any `.md` files touched; pushing them is harmless but pointless since
+they're not served.

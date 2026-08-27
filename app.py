@@ -562,6 +562,10 @@ def lookbook():
     return render_template('lookbook.html', images=images)
 
 
+@app.route('/requisites')
+def requisites():
+    return render_template('requisites.html')
+
 @app.route('/product/<int:product_id>')
 def product(product_id):
     products = get_products()

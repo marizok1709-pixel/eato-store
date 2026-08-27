@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Реквизиты — EATO{% endblock %}
+
+{% block content %}
+<section class="requisites-page">
+    <div class="container">
+        <div class="requisites-header">
+            <h1>Реквизиты</h1>
+            <p>Информация о продавце</p>
+        </div>
+
+        <div class="requisites-block">
+            <h2>Продавец</h2>
+
+            <div class="requisites-list">
+                <div class="requisites-row">
+                    <span class="requisites-label">ФИО</span>
+                    <span class="requisites-value">
+                        Гаврилов Андрей Евгеньевич
+                    </span>
+                </div>
+
+                <div class="requisites-row">
+                    <span class="requisites-label">ИНН</span>
+                    <span class="requisites-value">
+                        780246828348
+                    </span>
+                </div>
+
+                <div class="requisites-row">
+                    <span class="requisites-label">Статус</span>
+                    <span class="requisites-value">
+                        Физическое лицо, применяющее специальный налоговый режим
+                        «Налог на профессиональный доход»
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="requisites-block">
+            <h2>Контакты</h2>
+
+            <div class="requisites-list">
+                <div class="requisites-row">
+                    <span class="requisites-label">Email</span>
+                    <span class="requisites-value">
+                        <a href="mailto:eato.shopp@gmail.com">
+                            eato.shopp@gmail.com
+                        </a>
+                    </span>
+                </div>
+
+                <div class="requisites-row">
+                    <span class="requisites-label">Телефон</span>
+                    <span class="requisites-value">
+                        <a href="tel:+79819063405">
+                            +7 981 906-34-05
+                        </a>
+                    </span>
+                </div>
+
+                <div class="requisites-row">
+                    <span class="requisites-label">Telegram</span>
+                    <span class="requisites-value">
+                        <a href="https://t.me/eato_shopp" target="_blank" rel="noopener">
+                            @eato_shopp
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

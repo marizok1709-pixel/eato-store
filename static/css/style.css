@@ -1125,6 +1125,108 @@ section {
     font-family: var(--font-mono);
 }
 
+/* Requisites Page */
+
+.requisites-page {
+    min-height: 100vh;
+    padding-top: 150px;
+    padding-bottom: 120px;
+}
+
+.requisites-header {
+    margin-bottom: 60px;
+}
+
+.requisites-header h1 {
+    font-size: 4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin: 0 0 20px;
+}
+
+.requisites-header p {
+    color: var(--light-gray);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.requisites-block {
+    max-width: 900px;
+    margin-bottom: 50px;
+}
+
+.requisites-block h2 {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 20px;
+}
+
+.requisites-list {
+    border-top: 1px solid var(--medium-gray);
+}
+
+.requisites-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 30px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--medium-gray);
+}
+
+.requisites-label {
+    font-family: var(--font-mono);
+    color: var(--light-gray);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+}
+
+.requisites-value {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.requisites-value a {
+    color: var(--white);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.requisites-value a:hover {
+    opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+    .requisites-page {
+        padding-top: 100px;
+        padding-bottom: 80px;
+    }
+
+    .requisites-header h1 {
+        font-size: 2.5rem;
+        letter-spacing: 0.12em;
+    }
+
+    .requisites-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 16px 0;
+    }
+
+    .requisites-label {
+        font-size: 0.75rem;
+    }
+
+    .requisites-value {
+        font-size: 0.85rem;
+    }
+}
+
 /* Cart Styles */
 .cart-section {
     padding-top: 150px;

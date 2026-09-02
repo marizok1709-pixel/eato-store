@@ -566,6 +566,10 @@ def lookbook():
 def requisites():
     return render_template('requisites.html')
 
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
 @app.route('/product/<int:product_id>')
 def product(product_id):
     products = get_products()
@@ -609,23 +613,14 @@ def auth():
 
         if action == 'login':
             # Авторизация
-            login_input = request.form.get('login_input')  # email или телефон
+            login_input = request.form.get('login_input')
             password = request.form.get('password')
-
-            users = get_users()
-            user = None
-            for u in users:
-                if (u['email'] == login_input or u['phone'] == login_input) and check_password_hash(u['password'],
-                                                                                                    password):
-                    user = u
-                    break
-
+            # ... user lookup ...
             if user and not user['email_verified']:
-                flash('Email ещё не подтверждён. Проверьте почту или отправьте письмо ещё раз ниже.', 'error')
+                flash('Email ещё не подтверждён...', 'error')
             elif user:
                 session['user_id'] = user['id']
                 session['user_name'] = user['name']
-                # Загружаем корзину пользователя
                 user_cart = get_user_cart(user['id'])
                 session['cart'] = user_cart
                 flash('Вход выполнен успешно!', 'success')
@@ -633,16 +628,24 @@ def auth():
             else:
                 flash('Неверный логин или пароль', 'error')
 
-        elif action == 'register':
+        elif action == 'register':   #вот тут пипец всегда
             # Регистрация
             name = request.form.get('name', '').strip()
             email = request.form.get('email', '').strip()
             phone = request.form.get('phone', '').strip()
             password = request.form.get('password')
             password_confirm = request.form.get('password_confirm')
+            accept_privacy = request.form.get('accept_privacy')
+
+            errors = []
+            if not accept_privacy:
+                errors.append('Вы должны принять политику конфиденциальности.')
 
             # Валидация
             errors = []
+            if not accept_privacy:
+
+                  errors.append('Вы должны принять политику конфиденциальности.')
 
             if not name or len(name) < 2:
                 errors.append('Имя должно содержать минимум 2 символа')

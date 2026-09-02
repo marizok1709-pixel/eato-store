@@ -3094,3 +3094,18 @@ body.nav-open .mobile-nav {
         animation: none;
     }
 }
+
+/* Privacy policy page */
+.privacy-page p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+.privacy-page h1 {
+    margin-bottom: 0.5rem;
+}
+.privacy-page .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+

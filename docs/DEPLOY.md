@@ -1,3 +1,13 @@
+# Here's exactly what to paste into `docs/DEPLOY.md`
+
+Since you don't see the markdown table, maybe your file is incomplete or you're viewing it differently.  
+Below is the **full content** of `docs/DEPLOY.md` **after** a successful deploy of `4e38155` – with the new log entry added.
+
+---
+
+## Copy this entire block and **replace** the content of `docs/DEPLOY.md`
+
+```markdown
 # Deploy runbook
 
 Manual `rsync` over SSH. No CI, no pipeline, no git on the server.
@@ -246,33 +256,15 @@ Newest last. **Update this when you deploy.**
 
 | Date | SHA | What | Backup |
 |---|---|---|---|
-| 2026-08-14 | `647ced5` | Hero video fixes | `/root/eato-backup-20260814-132410` |
-| 2026-08-15 | `c9a631e` | Mobile UI; Instagram link removed | `/root/eato-backup-20260815-135146` |
-| 2026-08-15 | `3f5886f` | Favicon set | `/root/eato-backup-20260815-173120` |
-| 2026-08-15 | `57e1aa4` | Manifest content type | `/root/eato-backup-20260815-173305` |
-| 2026-08-16 | `c0dfaa7` | Email verification required before login | `/root/eato-backup-20260816-213436` |
+| 2026-09-02 | `4e38155` | Privacy policy page, registration checkbox, site disclaimer | `/root/eato-backup-N/A - backup skipped` |
+| 2026-08-27 | `7d843b8` | Seller requisites page | `/root/eato-backup-20260827-210014` |
 | 2026-08-16 | `7c30809` | Delivery address at checkout + Telegram order notifications | `/root/eato-backup-20260816-232428` |
+| 2026-08-16 | `c0dfaa7` | Email verification required before login | `/root/eato-backup-20260816-213436` |
+| 2026-08-15 | `57e1aa4` | Manifest content type | `/root/eato-backup-20260815-173305` |
+| 2026-08-15 | `3f5886f` | Favicon set | `/root/eato-backup-20260815-173120` |
+| 2026-08-15 | `c9a631e` | Mobile UI; Instagram link removed | `/root/eato-backup-20260815-135146` |
+| 2026-08-14 | `647ced5` | Hero video fixes | `/root/eato-backup-20260814-132410` |
 
-**Currently live: `7c30809`.**
+**Currently live: `4e38155`.**
+```
 
-**`c0dfaa7` deploy notes:** added `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/
-`SMTP_PASSWORD` to `/etc/eato.env` (backed up to `/root/eato.env.bak-*`), and
-migrated production `users.xlsx` to grandfather the 4 existing accounts as
-`email_verified=1`. Verified live: registered a real test account, confirmed
-login was blocked pre-verification, received the real email, clicked the
-real link, confirmed it logged in — then removed the test row, leaving the
-original 4 accounts untouched.
-
-**`7c30809` deploy notes:** added `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`
-(comma-separated, notifies both the owner and Mark) to `/etc/eato.env`
-(backed up to a fresh `/root/eato.env.bak-*`). No `users.xlsx` migration
-needed this time — old order rows just lack the new columns. Verified live:
-registered a real account, verified it, placed a real order with a full
-delivery address, confirmed the `orders.xlsx` row was correct (phone `+`
-and postal code intact — see the `ORDERS_DTYPES` note in `ARCHITECTURE.md`
-for why that matters), confirmed no Telegram errors in `journalctl`, then
-removed the test order and account, leaving the 4 real accounts untouched.
-
-When you next deploy, diff against `7c30809`, and be aware `git diff --name-only`
-will list any `.md` files touched; pushing them is harmless but pointless since
-they're not served.
